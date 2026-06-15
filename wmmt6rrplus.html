@@ -1321,6 +1321,15 @@ async function renderCommentSection(carId) {
     </div>`;
 }
 
+function resetVote(carId) {
+  if (!confirm('投票を取り消して再投票しますか？\n※取り消しても過去の投票データは残ります')) return;
+  delete votedCars[carId];
+  try { localStorage.setItem(VOTED_KEY, JSON.stringify(votedCars)); } catch(e) {}
+  renderModalVote(carId);
+  const card = document.getElementById(`card-${carId}`);
+  if (card) { const car = CARS.find(c => c.id === carId); card.outerHTML = renderCard(car); }
+}
+
 // ===== MODAL =====
 let currentModalCarId = null;
 const modalPending = {};
@@ -1383,6 +1392,7 @@ function renderModalVote(carId) {
     section.innerHTML = `<div class="modal-voted-msg">
       <span>✓ 投票済み</span>
       <small>あなたの評価が反映されています</small>
+      <button onclick="resetVote('${carId}')" style="margin-top:8px;font-size:11px;padding:5px 14px;border-radius:6px;border:0.5px solid rgba(231,76,60,0.4);background:transparent;color:#e74c3c;cursor:pointer;">🔄 投票を取り消して再投票</button>
     </div>`;
     return;
   }
