@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WANGAN MIDNIGHT MAXIMUM TUNE 6RR+ | 全車種評価データベース by れおじん</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -510,6 +511,68 @@
     border: 0.5px solid var(--border); border-radius: 6px; cursor: pointer;
   }
 
+  /* COMMENT SECTION */
+  .modal-comment-section { margin-top: 1rem; }
+  .comment-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .comment-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .comment-count { font-size: 11px; color: var(--text3); }
+  .comment-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+  .comment-card {
+    background: var(--dark3); border-radius: 8px;
+    padding: 0.75rem; border: 0.5px solid var(--border);
+  }
+  .comment-meta {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap;
+  }
+  .comment-player { font-size: 12px; font-weight: 600; color: var(--gold); }
+  .comment-class {
+    font-size: 10px; padding: 2px 7px; border-radius: 4px;
+    background: rgba(245,166,35,0.1); color: var(--gold);
+    border: 0.5px solid rgba(245,166,35,0.3);
+  }
+  .comment-date { font-size: 10px; color: var(--text3); margin-left: auto; }
+  .comment-text { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .comment-delete-btn {
+    font-size: 10px; color: #e74c3c; background: none; border: none;
+    cursor: pointer; margin-top: 4px; padding: 0;
+  }
+  .comment-empty { font-size: 12px; color: var(--text3); text-align: center; padding: 1rem 0; }
+
+  /* GOOGLE LOGIN */
+  .google-login-btn {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    width: 100%; padding: 10px; border-radius: 8px;
+    background: #fff; color: #333; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; margin-bottom: 0.75rem;
+    transition: opacity 0.15s;
+  }
+  .google-login-btn:hover { opacity: 0.9; }
+  .google-login-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .google-logout-btn {
+    font-size: 11px; color: var(--text3); background: none; border: none;
+    cursor: pointer; text-decoration: underline; display: block; margin: 0 auto 0.75rem;
+  }
+  .comment-form { display: flex; flex-direction: column; gap: 8px; }
+  .comment-form input, .comment-form textarea {
+    background: var(--dark); border: 0.5px solid var(--border);
+    border-radius: 6px; color: var(--text); font-size: 12px;
+    padding: 8px 10px; outline: none; font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .comment-form input:focus, .comment-form textarea:focus { border-color: var(--gold); }
+  .comment-form textarea { min-height: 70px; resize: vertical; }
+  .comment-submit-btn {
+    padding: 8px; font-size: 13px; font-weight: 600;
+    background: var(--gold); color: #000; border: none;
+    border-radius: 6px; cursor: pointer; transition: opacity 0.15s;
+  }
+  .comment-submit-btn:hover { opacity: 0.85; }
+  .comment-submit-btn:disabled { opacity: 0.35; cursor: default; }
+  .comment-login-note { font-size: 11px; color: var(--text3); text-align: center; }
+
   /* FOOTER */
   footer {
     border-top: 0.5px solid var(--border);
@@ -563,6 +626,7 @@
       <p class="modal-votes-total" id="modal-votes-total"></p>
       <div class="modal-desc-section" id="modal-desc-section"></div>
       <div class="modal-vote-section" id="modal-vote-section"></div>
+      <div class="modal-comment-section" id="modal-comment-section"></div>
     </div>
   </div>
 </div>
@@ -776,6 +840,10 @@ const CARS = [
 // ===== SUPABASE CONFIG =====
 const SUPABASE_URL = 'https://kyvxtwftncceeunzvimx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5dnh0d2Z0bmNjZWV1bnp2aW14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NjA3OTEsImV4cCI6MjA5NzAzNjc5MX0.wVlTOCq-0wF_Kk1p6jLwMriA1WjsnWVfeADsQ798koE';
+
+// Supabase JS クライアント（認証用）
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const SB_HEADERS = {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_KEY,
@@ -1089,6 +1157,137 @@ function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ===== GOOGLE AUTH & COMMENTS =====
+let currentUser = null;
+
+// ログイン状態の監視
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  currentUser = session?.user || null;
+  // モーダルが開いていたらコメント欄を再描画
+  if (currentModalCarId) renderCommentSection(currentModalCarId);
+});
+
+async function loginWithGoogle() {
+  await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+}
+
+async function logout() {
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  if (currentModalCarId) renderCommentSection(currentModalCarId);
+}
+
+async function loadComments(carId) {
+  try {
+    const token = (await supabaseClient.auth.getSession()).data.session?.access_token;
+    const headers = { ...SB_HEADERS };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/comments?car_id=eq.${carId}&order=created_at.desc`, {
+      headers, mode: 'cors', credentials: 'omit'
+    });
+    return res.ok ? await res.json() : [];
+  } catch(e) { return []; }
+}
+
+async function submitComment(carId) {
+  const playerName = document.getElementById('comment-player-name').value.trim();
+  const playerClass = document.getElementById('comment-player-class').value.trim();
+  const content = document.getElementById('comment-content').value.trim();
+  if (!playerName || !playerClass || !content) { alert('全項目を入力してください'); return; }
+
+  const btn = document.getElementById('comment-submit-btn');
+  btn.disabled = true; btn.textContent = '送信中...';
+
+  try {
+    const session = (await supabaseClient.auth.getSession()).data.session;
+    const token = session?.access_token;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/comments`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ car_id: carId, user_id: currentUser.id, player_name: playerName, player_class: playerClass, content }),
+      mode: 'cors', credentials: 'omit'
+    });
+    if (res.ok) { renderCommentSection(carId); }
+    else { alert('送信に失敗しました'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
+  } catch(e) { alert('送信に失敗しました'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
+}
+
+async function deleteComment(commentId, carId) {
+  if (!confirm('このコメントを削除しますか？')) return;
+  try {
+    const session = (await supabaseClient.auth.getSession()).data.session;
+    const token = session?.access_token;
+    // 管理者は全削除可、一般ユーザーは自分のみ
+    const headers = isAdmin
+      ? { ...SB_HEADERS }
+      : { ...SB_HEADERS, 'Authorization': `Bearer ${token}` };
+    await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`, {
+      method: 'DELETE', headers, mode: 'cors', credentials: 'omit'
+    });
+    renderCommentSection(carId);
+  } catch(e) {}
+}
+
+async function renderCommentSection(carId) {
+  const section = document.getElementById('modal-comment-section');
+  if (!section) return;
+
+  const comments = await loadComments(carId);
+  const session = (await supabaseClient.auth.getSession()).data.session;
+  const user = session?.user || null;
+
+  let commentsHtml = '';
+  if (comments.length === 0) {
+    commentsHtml = '<p class="comment-empty">まだコメントがありません</p>';
+  } else {
+    commentsHtml = '<div class="comment-list">' + comments.map(c => {
+      const date = new Date(c.created_at).toLocaleDateString('ja-JP');
+      const canDelete = isAdmin || (user && user.id === c.user_id);
+      return `<div class="comment-card">
+        <div class="comment-meta">
+          <span class="comment-player">${escHtml(c.player_name)}</span>
+          <span class="comment-class">${escHtml(c.player_class)}</span>
+          <span class="comment-date">${date}</span>
+        </div>
+        <p class="comment-text">${escHtml(c.content)}</p>
+        ${canDelete ? `<button class="comment-delete-btn" onclick="deleteComment('${c.id}','${carId}')">🗑 削除</button>` : ''}
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  let formHtml = '';
+  if (!user) {
+    formHtml = `
+      <button class="google-login-btn" onclick="loginWithGoogle()">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Googleでログインしてコメント
+      </button>
+      <p class="comment-login-note">コメントにはGoogleログインが必要です</p>`;
+  } else {
+    formHtml = `
+      <button class="google-logout-btn" onclick="logout()">ログアウト (${user.email})</button>
+      <div class="comment-form">
+        <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20">
+        <input id="comment-player-class" type="text" placeholder="現在のクラス（例：伝説級S）" maxlength="20">
+        <textarea id="comment-content" placeholder="コメントを入力..." maxlength="200"></textarea>
+        <button class="comment-submit-btn" id="comment-submit-btn" onclick="submitComment('${carId}')">コメントを投稿</button>
+      </div>`;
+  }
+
+  section.innerHTML = `
+    <div class="modal-comment-section">
+      <div class="comment-header">
+        <span class="comment-title">💬 コメント</span>
+        <span class="comment-count">${comments.length}件</span>
+      </div>
+      ${commentsHtml}
+      ${formHtml}
+    </div>`;
+}
+
 // ===== MODAL =====
 let currentModalCarId = null;
 const modalPending = {};
@@ -1133,6 +1332,9 @@ function openModal(carId) {
 
   // description
   renderModalDesc(carId);
+
+  // comments
+  renderCommentSection(carId);
 
   // open
   document.getElementById('modal-overlay').classList.add('open');
