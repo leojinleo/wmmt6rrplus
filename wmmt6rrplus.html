@@ -21,8 +21,9 @@
     --purple: #8b6fe8;
   }
   body {
-    background: var(--dark);
-    color: var(--text);
+    background: #0a0a0f;
+    background-color: #0a0a0f;
+    color: #f0f0f0;
     font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
     line-height: 1.6;
     min-height: 100vh;
@@ -33,10 +34,9 @@
     background: var(--dark2);
     border-bottom: 0.5px solid var(--border);
     padding: 0 0.75rem;
-    gap: 6px;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     height: 52px;
     position: sticky;
     top: 0;
@@ -47,7 +47,20 @@
     align-items: center;
     gap: 6px;
     min-width: 0;
-    flex-shrink: 1;
+    overflow: hidden;
+  }
+  .header-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
   }
   .logo-mark {
     width: 28px; height: 28px;
@@ -56,11 +69,12 @@
     display: flex; align-items: center; justify-content: center;
   }
   .logo-mark svg { width:16px; height:16px; fill: #000; }
-  .logo-text { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .logo-text { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
   .logo-sub { font-size: 9px; color: var(--text2); letter-spacing: 0.08em; display: block; margin-top: -2px; white-space: nowrap; }
   .yt-link {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 11px; color: var(--text2);
+    display: flex; align-items: center; gap: 4px;
+    font-size: 10px; color: var(--text2);
+    flex-shrink: 0;
     text-decoration: none;
     border: 0.5px solid var(--border);
     padding: 4px 8px;
@@ -68,8 +82,18 @@
     border-radius: 999px;
     transition: color 0.15s, border-color 0.15s;
   }
-  .yt-link:hover { color: #f00; border-color: rgba(255,0,0,0.4); }
-  .yt-icon { width: 14px; height: 14px; fill: currentColor; }
+  .yt-link-center {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 10px; color: var(--text2);
+    text-decoration: none;
+    border: 0.5px solid var(--border);
+    padding: 4px 8px;
+    white-space: nowrap;
+    border-radius: 999px;
+    transition: color 0.15s, border-color 0.15s;
+    justify-content: center;
+  }
+  .yt-link-center:hover { color: #f00; border-color: rgba(255,0,0,0.4); }
 
   /* HERO */
   .hero {
@@ -110,7 +134,7 @@
   .filter-label { font-size: 11px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-right: 4px; }
   .filter-btn {
     font-size: 12px; padding: 5px 14px; border-radius: 999px;
-    border: 0.5px solid var(--border); background: transparent; color: var(--text2);
+    border: 0.5px solid rgba(255,255,255,0.2); background: var(--dark3); color: #f0f0f0;
     cursor: pointer; transition: all 0.15s;
   }
   .filter-btn:hover { border-color: rgba(245,166,35,0.4); color: var(--gold); }
@@ -313,17 +337,22 @@
   .radar-wrap {
     display: flex; justify-content: center; margin-bottom: 1.25rem;
   }
-  .radar-svg { width: 180px; height: 180px; overflow: visible; }
+  .radar-svg { width: 160px; height: 160px; overflow: visible; }
+
+  /* RADAR WRAP */
+  .radar-wrap {
+    display: flex; justify-content: center; margin-bottom: 1rem;
+  }
 
   /* MODAL STATS */
-  .modal-stats { margin-bottom: 1.25rem; }
+  .modal-stats { margin-bottom: 1rem; padding: 0 0.25rem; }
   .modal-stat-row {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 4px; margin-bottom: 7px;
   }
-  .modal-stat-label { font-size: 12px; color: var(--text2); width: 80px; flex-shrink: 0; }
-  .modal-stat-bar-wrap { flex: 1; background: var(--dark3); border-radius: 4px; height: 7px; overflow: hidden; }
+  .modal-stat-label { font-size: 11px; color: var(--text2); width: 68px; flex-shrink: 0; }
+  .modal-stat-bar-wrap { flex: 1; background: var(--dark3); border-radius: 4px; height: 6px; overflow: hidden; }
   .modal-stat-bar { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
-  .modal-stat-val { font-size: 13px; font-weight: 600; color: var(--text); width: 32px; text-align: right; flex-shrink: 0; }
+  .modal-stat-val { font-size: 12px; font-weight: 600; color: var(--text); width: 28px; text-align: right; flex-shrink: 0; }
   .modal-votes-total { font-size: 11px; color: var(--text3); text-align: center; margin-bottom: 1.25rem; }
 
   /* MODAL VOTE */
@@ -333,13 +362,13 @@
     padding: 1rem;
   }
   .modal-vote-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 1rem; }
-  .modal-vote-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .modal-vote-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
   .modal-vote-item5 { grid-column: span 1; }
   .modal-vote-item-full { grid-column: span 1; }
-  .modal-vote-item label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 5px; }
-  .modal-stars { display: flex; gap: 4px; }
+  .modal-vote-item label { font-size: 10px; color: var(--text3); display: block; margin-bottom: 3px; }
+  .modal-stars { display: flex; gap: 2px; }
   .modal-star {
-    width: 24px; height: 24px; cursor: pointer;
+    width: 20px; height: 20px; cursor: pointer;
     fill: var(--dark); stroke: rgba(255,255,255,0.2);
     stroke-width: 1.5; transition: fill 0.1s, transform 0.1s;
   }
@@ -550,11 +579,13 @@
       <span class="logo-sub">車種評価データベース</span>
     </div>
   </div>
-  <a class="yt-link" href="https://www.youtube.com/@LeoLeojin" target="_blank">
+  <a class="yt-link-center" href="https://www.youtube.com/@LeoLeojin" target="_blank">
     <svg class="yt-icon" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
-    れおじんのYouTubeチャンネルはこちら
+    れおじんのYouTube
   </a>
-  <button class="admin-header-btn" id="admin-header-btn" onclick="toggleAdminLogin()">管理者</button>
+  <div class="header-right">
+    <button class="admin-header-btn" id="admin-header-btn" onclick="toggleAdminLogin()">管理者</button>
+  </div>
 </header>
 
 <div class="hero">
@@ -748,21 +779,34 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const SB_HEADERS = {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'X-Client-Info': 'wmmt6rrplus'
 };
 async function sbGet(table, query = '') {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, { headers: SB_HEADERS });
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+    method: 'GET',
+    headers: SB_HEADERS,
+    mode: 'cors',
+    credentials: 'omit'
+  });
   return res.ok ? await res.json() : [];
 }
 async function sbUpsert(table, data) {
   await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: 'POST',
     headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
+    mode: 'cors',
+    credentials: 'omit'
   });
 }
 async function sbDelete(table, query) {
-  await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, { method: 'DELETE', headers: SB_HEADERS });
+  await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {
+    method: 'DELETE',
+    headers: SB_HEADERS,
+    mode: 'cors',
+    credentials: 'omit'
+  });
 }
 
 // ===== DATA =====
@@ -1093,6 +1137,8 @@ function openModal(carId) {
   // open
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
 }
 
 function renderModalVote(carId) {
@@ -1226,20 +1272,14 @@ function drawRadar(carId) {
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
   document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
   currentModalCarId = null;
 }
 function handleOverlayClick(e) {
   if (e.target === document.getElementById('modal-overlay')) closeModal();
 }
-// swipe down to close
-let touchStartY = 0;
-document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
-document.addEventListener('touchend', e => {
-  const modal = document.getElementById('modal-overlay');
-  if (!modal.classList.contains('open')) return;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  if (dy > 80) closeModal();
-}, { passive: true });
+// ×ボタンと背景タップのみで閉じる仕様
 
 // ===== RENDER CARD (with modal trigger) =====
 function renderCard(car) {
