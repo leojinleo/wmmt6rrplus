@@ -1271,7 +1271,7 @@ async function renderCommentSection(carId) {
       <button class="google-logout-btn" onclick="logout()">ログアウト (${user.email})</button>
       <div class="comment-form">
         <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20">
-        <input id="comment-player-class" type="text" placeholder="現在のクラス（例：伝説級S）" maxlength="20">
+        <input id="comment-player-class" type="text" placeholder="現在のクラス（例：SS6）" maxlength="20">
         <textarea id="comment-content" placeholder="コメントを入力..." maxlength="200"></textarea>
         <button class="comment-submit-btn" id="comment-submit-btn" onclick="submitComment('${carId}')">コメントを投稿</button>
       </div>`;
