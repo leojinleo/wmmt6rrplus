@@ -126,6 +126,55 @@
   /* MAIN */
   .main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 
+  /* RANKING */
+  .ranking-section {
+    background: var(--dark2);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .ranking-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .ranking-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .ranking-sub { font-size: 10px; color: var(--text3); }
+  .ranking-tabs {
+    display: flex; gap: 6px; overflow-x: auto;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    margin-bottom: 0.75rem; padding-bottom: 2px;
+  }
+  .ranking-tabs::-webkit-scrollbar { display: none; }
+  .ranking-tab {
+    font-size: 11px; padding: 4px 10px; border-radius: 999px;
+    border: 0.5px solid var(--border); background: transparent; color: var(--text2);
+    cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.15s;
+  }
+  .ranking-tab.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+  .ranking-list { display: flex; flex-direction: column; gap: 6px; }
+  .ranking-card {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--dark3); border-radius: 8px; padding: 8px 10px;
+    cursor: pointer; transition: background 0.15s;
+    border: 0.5px solid var(--border);
+  }
+  .ranking-card:hover { background: rgba(255,255,255,0.05); }
+  .ranking-rank {
+    font-size: 16px; font-weight: 700; width: 24px; text-align: center; flex-shrink: 0;
+  }
+  .rank-1 { color: #FFD700; }
+  .rank-2 { color: #C0C0C0; }
+  .rank-3 { color: #CD7F32; }
+  .ranking-info { flex: 1; min-width: 0; }
+  .ranking-maker { font-size: 10px; color: var(--text3); }
+  .ranking-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ranking-score {
+    font-size: 18px; font-weight: 700; color: var(--gold); flex-shrink: 0;
+  }
+  .ranking-votes { font-size: 10px; color: var(--text3); text-align: right; }
+  .ranking-empty { font-size: 12px; color: var(--text3); text-align: center; padding: 1rem 0; }
+
   /* FILTER BAR */
   .filter-bar {
     display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 2rem;
@@ -658,13 +707,31 @@
   <h1 class="hero-title"><span>全車種評価</span>データベース<br>by れおじん</h1>
   <p class="hero-desc">湾岸プレイヤーの投票で作られる<br>リアルタイム車種評価サイト<br>ここで見ればきっと何かの役に立つ！<br>ご協力の方よろしくお願い致します！</p>
   <div class="hero-pills">
-    <span class="pill">みんなで作る評価リスト</span>
+    <span class="pill">みんなで作る評価データベース</span>
     <span class="pill">全114台収録</span>
     <span class="pill">初心者でも分かる！</span>
   </div>
 </div>
 
 <div class="main">
+
+  <!-- RANKING SECTION -->
+  <div class="ranking-section" id="ranking-section">
+    <div class="ranking-header">
+      <span class="ranking-title">🏆 ランキング</span>
+      <span class="ranking-sub">投票データによる平均評価TOP3</span>
+    </div>
+    <div class="ranking-tabs">
+      <button class="ranking-tab active" onclick="switchRankingTab('boost', this)">ブースト</button>
+      <button class="ranking-tab" onclick="switchRankingTab('topspeed', this)">最高速</button>
+      <button class="ranking-tab" onclick="switchRankingTab('accel', this)">加速</button>
+      <button class="ranking-tab" onclick="switchRankingTab('contact', this)">接触</button>
+      <button class="ranking-tab" onclick="switchRankingTab('squeeze', this)">擦り抜け</button>
+      <button class="ranking-tab" onclick="switchRankingTab('cornering', this)">コーナリング</button>
+    </div>
+    <div class="ranking-list" id="ranking-list"></div>
+  </div>
+
   <div class="filter-bar">
     <span class="filter-label">メーカー</span>
     <button class="filter-btn active" onclick="filterMaker('all', this)">すべて</button>
@@ -1190,6 +1257,54 @@ function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ===== RANKING =====
+let currentRankingStat = 'boost';
+
+function renderRanking() {
+  const list = document.getElementById('ranking-list');
+  if (!list) return;
+
+  // 3票以上ある車種のみランキング対象
+  const ranked = CARS
+    .map(car => ({
+      car,
+      avg: getAvg(car.id, currentRankingStat),
+      votes: getTotalVotes(car.id)
+    }))
+    .filter(item => item.votes >= 1 && item.avg > 0)
+    .sort((a, b) => b.avg - a.avg || b.votes - a.votes)
+    .slice(0, 3);
+
+  if (ranked.length === 0) {
+    list.innerHTML = '<p class="ranking-empty">まだ投票データがありません</p>';
+    return;
+  }
+
+  const medals = ['🥇', '🥈', '🥉'];
+  const rankClasses = ['rank-1', 'rank-2', 'rank-3'];
+
+  list.innerHTML = ranked.map((item, i) => `
+    <div class="ranking-card" onclick="openModal('${item.car.id}')">
+      <span class="ranking-rank ${rankClasses[i]}">${medals[i]}</span>
+      <div class="ranking-info">
+        <p class="ranking-maker">${item.car.maker}</p>
+        <p class="ranking-name">${item.car.name}</p>
+        <p class="ranking-votes">${item.votes}票</p>
+      </div>
+      <div>
+        <p class="ranking-score">${item.avg.toFixed(1)}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function switchRankingTab(stat, btn) {
+  currentRankingStat = stat;
+  document.querySelectorAll('.ranking-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRanking();
+}
+
 // ===== GOOGLE AUTH & COMMENTS =====
 let currentUser = null;
 
@@ -1577,6 +1692,7 @@ function renderAll() {
   const list = getFilteredSortedCars();
   const container = document.getElementById('car-list');
   document.getElementById('count-badge').textContent = `${list.length} 台`;
+  renderRanking();
 
   if (currentSort !== 'default' || currentFilter !== 'all') {
     // flat grid when sorted/filtered
