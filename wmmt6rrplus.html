@@ -1695,8 +1695,15 @@ function renderAll() {
   renderRanking();
 
   if (currentSort !== 'default' || currentFilter !== 'all') {
-    // flat grid when sorted/filtered
-    container.innerHTML = `<div class="car-grid">${list.map(renderCard).join('')}</div>`;
+    // メーカー絞り込み時はヘッダーを表示
+    const makerHeader = currentFilter !== 'all' ? `
+      <div class="maker-section">
+        <div class="maker-header">
+          <span class="maker-name">${currentFilter}</span>
+          <span class="maker-count">${list.length}台</span>
+        </div>
+      </div>` : '';
+    container.innerHTML = makerHeader + `<div class="car-grid">${list.map(renderCard).join('')}</div>`;
   } else {
     // grouped by maker
     const makers = getMakers(list);
