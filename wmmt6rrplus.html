@@ -1745,37 +1745,36 @@ async function submitComment(carId) {
   } catch(e) { alert('送信に失敗しました'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
 }
 
-// いいね機能（localStorage・各コメント独立・1回のみ取り消し可・再いいね不可）
+// いいね機能（localStorage・1コメント1いいね・取り消し可・再いいね可）
 const LIKES_KEY = 'wmmt_likes';
 function getLikesData() {
   try { return JSON.parse(localStorage.getItem(LIKES_KEY) || '{}'); } catch { return {}; }
 }
 function getLiked(commentId) {
-  return !!getLikesData()[commentId]?.liked;
+  return !!getLikesData()[commentId];
 }
 function getLikeCount(commentId) {
   return getLikesData()[commentId]?.count || 0;
 }
 function toggleLike(commentId, btn) {
   const data = getLikesData();
-  // このコメント単独のエントリーを取得
-  const entry = { liked: false, count: 0, used: false, ...(data[commentId] || {}) };
-  if (entry.used) return; // このコメントへは既に使用済み
+  const entry = { liked: false, count: 0, ...(data[commentId] || {}) };
   if (entry.liked) {
     // 取り消し
     entry.liked = false;
     entry.count = Math.max(0, entry.count - 1);
-    entry.used = true;
     btn.classList.remove('liked');
-    btn.style.opacity = '0.4';
-    btn.style.pointerEvents = 'none';
   } else {
-    // いいね
-    entry.liked = true;
-    entry.count = entry.count + 1;
+    // いいね（カウントが1以上なら増やさない）
+    if (entry.count >= 1 && !entry.liked) {
+      // 一度取り消した後は再いいねでカウントは増やさない
+      entry.liked = true;
+    } else {
+      entry.liked = true;
+      entry.count = entry.count + 1;
+    }
     btn.classList.add('liked');
   }
-  // このコメントIDのみ更新（他のコメントには影響なし）
   data[commentId] = entry;
   localStorage.setItem(LIKES_KEY, JSON.stringify(data));
   btn.querySelector('.like-count').textContent = entry.count;
