@@ -1585,12 +1585,28 @@ let currentUser = null;
 // ログイン状態の監視
 supabaseClient.auth.onAuthStateChange((event, session) => {
   currentUser = session?.user || null;
+  // ログイン完了後にURLパラメータから車種IDを取得してモーダルを開く
+  if (event === 'SIGNED_IN') {
+    const params = new URLSearchParams(window.location.search);
+    const carId = params.get('open_car');
+    if (carId) {
+      // URLパラメータを消す
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      // 少し待ってからモーダルを開く
+      setTimeout(() => openModal(carId), 500);
+    }
+  }
   // モーダルが開いていたらコメント欄を再描画
   if (currentModalCarId) renderCommentSection(currentModalCarId);
 });
 
 async function loginWithGoogle() {
-  const redirectTo = window.location.href.split('?')[0].split('#')[0];
+  // ログイン前に現在開いている車種IDをURLパラメータに保存
+  const base = window.location.href.split('?')[0].split('#')[0];
+  const redirectTo = currentModalCarId
+    ? `${base}?open_car=${currentModalCarId}`
+    : base;
   await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
