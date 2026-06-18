@@ -1693,20 +1693,21 @@ async function deleteComment(commentId, carId) {
 }
 
 function updateSelectedBar(carId) {
-  const checkboxes = document.querySelectorAll(`.comment-checkbox:checked`);
-  const count = document.getElementById(`comment-selected-count-${carId}`);
+  const checkboxes = Array.from(document.querySelectorAll('.comment-checkbox:checked'));
+  const countEl = document.getElementById(`comment-selected-count-${carId}`);
   const selBtn = document.getElementById(`comment-sel-del-btn-${carId}`);
-  if (!count) return;
-  if (checkboxes.length > 0) {
-    count.textContent = `${checkboxes.length}件選択中`;
-    count.style.color = 'var(--gold)';
-    if (selBtn) selBtn.style.display = 'inline-block';
-  } else {
-    // 総件数を再取得して表示
-    const allCards = document.querySelectorAll('.comment-checkbox');
-    count.textContent = `${allCards.length}件`;
-    count.style.color = '';
-    if (selBtn) selBtn.style.display = 'none';
+  const allBoxes = document.querySelectorAll('.comment-checkbox');
+  if (countEl) {
+    if (checkboxes.length > 0) {
+      countEl.textContent = `${checkboxes.length}件選択中`;
+      countEl.style.color = 'var(--gold)';
+    } else {
+      countEl.textContent = `${allBoxes.length}件`;
+      countEl.style.color = '';
+    }
+  }
+  if (selBtn) {
+    selBtn.style.display = checkboxes.length > 0 ? 'inline-block' : 'none';
   }
 }
 
