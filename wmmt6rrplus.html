@@ -1867,9 +1867,12 @@ async function renderCommentSection(carId) {
             <p class="comment-text">${escHtml(c.content)}</p>
             <div class="comment-footer">
               ${canDelete ? `<button class="comment-delete-btn" onclick="deleteComment('${c.id}','${carId}')">🗑 削除</button>` : '<span></span>'}
-              <button class="comment-like-btn ${getLiked(c.id) ? 'liked' : ''}" onclick="toggleLike('${c.id}', this)">
-                ♥ <span class="like-count">${getLikeCount(c.id)}</span>
-              </button>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:10px;color:var(--text3);">役に立ったらいいね！→</span>
+                <button class="comment-like-btn ${getLiked(c.id) ? 'liked' : ''}" onclick="toggleLike('${c.id}', this)">
+                  ♥ <span class="like-count">${getLikeCount(c.id)}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>`;
