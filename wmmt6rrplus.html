@@ -1764,6 +1764,7 @@ function toggleLike(commentId, btn) {
     entry.liked = false;
     entry.count = Math.max(0, entry.count - 1);
     btn.classList.remove('liked');
+    btn.style.color = '';
   } else {
     // いいね（カウントが1以上なら増やさない）
     if (entry.count >= 1 && !entry.liked) {
@@ -1988,6 +1989,8 @@ function openModal(carId) {
   // open
   document.getElementById('modal-overlay').classList.add('open');
   document.getElementById('modal-close-btn').classList.add('visible');
+  // モーダルを先頭にスクロール
+  document.getElementById('modal').scrollTop = 0;
   const scrollY = window.scrollY;
   document.body.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
