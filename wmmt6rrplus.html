@@ -1692,6 +1692,39 @@ async function deleteComment(commentId, carId) {
   } catch(e) { alert('削除に失敗しました'); }
 }
 
+function updateSelectedBar(carId) {
+  const checkboxes = document.querySelectorAll(`.comment-checkbox:checked`);
+  const count = document.getElementById(`comment-selected-count-${carId}`);
+  const selBtn = document.getElementById(`comment-sel-del-btn-${carId}`);
+  if (!count) return;
+  if (checkboxes.length > 0) {
+    count.textContent = `${checkboxes.length}件選択中`;
+    count.style.color = 'var(--gold)';
+    if (selBtn) selBtn.style.display = 'inline-block';
+  } else {
+    // 総件数を再取得して表示
+    const allCards = document.querySelectorAll('.comment-checkbox');
+    count.textContent = `${allCards.length}件`;
+    count.style.color = '';
+    if (selBtn) selBtn.style.display = 'none';
+  }
+}
+
+async function deleteSelectedComments(carId) {
+  const checkboxes = document.querySelectorAll(`.comment-checkbox:checked`);
+  if (checkboxes.length === 0) return;
+  if (!confirm(`${checkboxes.length}件のコメントを削除しますか？`)) return;
+  const ids = Array.from(checkboxes).map(cb => cb.dataset.id);
+  try {
+    for (const id of ids) {
+      await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${id}`, {
+        method: 'DELETE', headers: SB_HEADERS, mode: 'cors', credentials: 'omit'
+      });
+    }
+    renderCommentSection(carId);
+  } catch(e) { alert('削除に失敗しました'); }
+}
+
 async function deleteAllComments(carId) {
   if (!confirm(`この車種のコメントを全て削除しますか？`)) return;
   try {
@@ -1715,10 +1748,6 @@ async function renderCommentSection(carId) {
     commentsHtml = '<p class="comment-empty">まだコメントがありません</p>';
   } else {
     commentsHtml = `
-      ${isAdmin ? `<div class="comment-selected-bar" id="comment-selected-bar-${carId}">
-        <span class="comment-selected-count" id="comment-selected-count-${carId}">0件選択中</span>
-        <button class="comment-selected-delete-btn" onclick="deleteSelectedComments('${carId}')">🗑 選択削除</button>
-      </div>` : ''}
       <div class="comment-list">` +
       comments.map(c => {
         const date = new Date(c.created_at).toLocaleDateString('ja-JP');
@@ -1763,8 +1792,11 @@ async function renderCommentSection(carId) {
       <div class="comment-header">
         <span class="comment-title">💬 コメント</span>
         <div style="display:flex;align-items:center;gap:8px">
-          <span class="comment-count">${comments.length}件</span>
-          ${isAdmin && comments.length > 0 ? `<button onclick="deleteAllComments('${carId}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(231,76,60,0.4);background:transparent;color:#e74c3c;cursor:pointer;">🗑 全削除</button>` : ''}
+          <span class="comment-count" id="comment-selected-count-${carId}">${comments.length}件</span>
+          ${isAdmin && comments.length > 0 ? `
+            <button class="comment-selected-delete-btn" id="comment-sel-del-btn-${carId}" style="display:none" onclick="deleteSelectedComments('${carId}')">🗑 選択削除</button>
+            <button onclick="deleteAllComments('${carId}')" style="font-size:10px;padding:3px 8px;border-radius:4px;border:0.5px solid rgba(231,76,60,0.4);background:transparent;color:#e74c3c;cursor:pointer;">🗑 全削除</button>
+          ` : ''}
         </div>
       </div>
       ${commentsHtml}
