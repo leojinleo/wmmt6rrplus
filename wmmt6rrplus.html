@@ -650,8 +650,7 @@
     transition: all 0.15s;
   }
   .comment-like-btn:hover { background: rgba(245,166,35,0.1); color: var(--gold); }
-  .comment-like-btn.liked { color: var(--gold); }
-  .comment-like-btn.liked .like-heart { filter: none; }
+  .comment-like-btn.liked { color: var(--gold) !important; }
   .comment-empty { font-size: 12px; color: var(--text3); text-align: center; padding: 1rem 0; }
 
   /* GOOGLE LOGIN */
@@ -1764,7 +1763,8 @@ function toggleLike(commentId, btn) {
     entry.liked = false;
     entry.count = Math.max(0, entry.count - 1);
     btn.classList.remove('liked');
-    btn.style.color = '';
+    btn.style.color = 'var(--text3)';
+    btn.style.background = 'none';
   } else {
     // いいね（カウントが1以上なら増やさない）
     if (entry.count >= 1 && !entry.liked) {
