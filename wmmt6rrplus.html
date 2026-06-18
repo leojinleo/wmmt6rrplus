@@ -1759,14 +1759,14 @@ function getLikeCount(commentId) {
 function toggleLike(commentId, btn) {
   const data = getLikesData();
   const entry = data[commentId] || { liked: false, count: 0, used: false };
-  if (entry.used && !entry.liked) return; // 一度取り消したら再いいね不可
+  if (entry.used) return; // 一度使ったら（いいね→取り消し）再押し不可
   if (entry.liked) {
     // 取り消し
     entry.liked = false;
     entry.count = Math.max(0, entry.count - 1);
-    entry.used = true; // 使用済みフラグ
+    entry.used = true;
     btn.classList.remove('liked');
-    btn.style.opacity = '0.4'; // 再押し不可を視覚的に表示
+    btn.style.opacity = '0.4';
     btn.style.pointerEvents = 'none';
   } else {
     // いいね
@@ -1866,7 +1866,7 @@ async function renderCommentSection(carId) {
             <p class="comment-text">${escHtml(c.content)}</p>
             <div class="comment-footer">
               ${canDelete ? `<button class="comment-delete-btn" onclick="deleteComment('${c.id}','${carId}')">🗑 削除</button>` : '<span></span>'}
-              <button class="comment-like-btn ${getLiked(c.id) ? 'liked' : ''}" onclick="toggleLike('${c.id}', this)" style="${getLikesData()[c.id]?.used && !getLikesData()[c.id]?.liked ? 'opacity:0.4;pointer-events:none' : getLiked(c.id) ? '' : ''}">
+              <button class="comment-like-btn ${getLiked(c.id) ? 'liked' : ''}" onclick="toggleLike('${c.id}', this)">
                 ♥ <span class="like-count">${getLikeCount(c.id)}</span>
               </button>
             </div>
