@@ -207,6 +207,31 @@
   .sort-btn:hover, .sort-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(59,158,221,0.1); }
   .count-badge { margin-left: auto; font-size: 11px; color: var(--text3); }
 
+  /* SEARCH BAR */
+  .search-bar-wrap {
+    position: relative; margin-bottom: 1.25rem;
+  }
+  .search-bar-wrap svg.search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; color: var(--text3); pointer-events: none;
+  }
+  .search-input {
+    width: 100%; box-sizing: border-box;
+    background: var(--dark2); border: 0.5px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 14px;
+    padding: 9px 36px 9px 36px; outline: none; font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: rgba(245,166,35,0.5); }
+  .search-input::placeholder { color: var(--text3); }
+  .search-clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    width: 20px; height: 20px; border-radius: 50%; background: var(--dark3);
+    color: var(--text3); font-size: 13px; line-height: 20px; text-align: center;
+    cursor: pointer; display: none; border: none;
+  }
+  .search-clear.visible { display: block; }
+
   /* MAKER SECTION */
   .maker-section { margin-bottom: 2.5rem; }
   .maker-header {
@@ -913,6 +938,14 @@
     <span class="count-badge" id="count-badge">— 台</span>
   </div>
 
+  <div class="search-bar-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input class="search-input" id="search-input" type="search" placeholder="車種名で検索..." oninput="onSearchInput(this.value)" autocomplete="off">
+    <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+  </div>
+
   <div id="car-list"></div>
 </div>
 
@@ -1103,6 +1136,23 @@ let carImages = {};
 let descriptions = {};
 let currentFilter = 'all';
 let currentSort = 'default';
+let currentSearchQuery = '';
+
+function onSearchInput(val) {
+  currentSearchQuery = val.trim();
+  const clearBtn = document.getElementById('search-clear');
+  if (clearBtn) clearBtn.classList.toggle('visible', currentSearchQuery.length > 0);
+  renderAll();
+}
+
+function clearSearch() {
+  currentSearchQuery = '';
+  const input = document.getElementById('search-input');
+  const clearBtn = document.getElementById('search-clear');
+  if (input) input.value = '';
+  if (clearBtn) clearBtn.classList.remove('visible');
+  renderAll();
+}
 
 async function loadRatings() {
   try {
@@ -2094,6 +2144,15 @@ function renderCard(car) {
 
 function getFilteredSortedCars() {
   let list = currentFilter === 'all' ? [...CARS] : CARS.filter(c => c.maker === currentFilter);
+  // 検索フィルター（日英両対応）
+  if (currentSearchQuery) {
+    const q = currentSearchQuery.toLowerCase();
+    list = list.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.maker.toLowerCase().includes(q) ||
+      (c.nameJa && c.nameJa.includes(q))
+    );
+  }
   if (currentSort === 'default') return list;
   if (currentSort === 'votes') return list.sort((a,b) => getTotalVotes(b.id) - getTotalVotes(a.id));
   return list.sort((a,b) => getAvg(b.id, currentSort) - getAvg(a.id, currentSort));
@@ -2110,6 +2169,15 @@ function renderAll() {
   const container = document.getElementById('car-list');
   document.getElementById('count-badge').textContent = `${list.length} 台`;
   renderRanking();
+
+  // 該当なし
+  if (list.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:3rem 1rem;color:var(--text3);">
+      <div style="font-size:2rem;margin-bottom:0.5rem">🔍</div>
+      <div style="font-size:14px;">「${currentSearchQuery}」に一致する車種が見つかりませんでした</div>
+    </div>`;
+    return;
+  }
 
   if (currentSort !== 'default' || currentFilter !== 'all') {
     // メーカー絞り込み時はヘッダーを表示
