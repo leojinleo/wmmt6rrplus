@@ -227,10 +227,8 @@
     border-radius: 10px;
     overflow: hidden;
     transition: border-color 0.15s, transform 0.15s;
-    -webkit-tap-highlight-color: transparent;
   }
   .car-card:hover { border-color: rgba(245,166,35,0.25); transform: translateY(-1px); }
-  .car-card:active { transform: scale(0.96); border-color: rgba(245,166,35,0.4); transition: transform 0.08s, border-color 0.08s; }
   .car-card-head {
     padding: 1rem 1rem 0.75rem;
     border-bottom: 0.5px solid var(--border);
@@ -405,7 +403,7 @@
   }
   .modal-stat-label { font-size: 11px; color: var(--text2); width: 68px; flex-shrink: 0; }
   .modal-stat-bar-wrap { flex: 1; background: var(--dark3); border-radius: 4px; height: 6px; overflow: hidden; }
-  .modal-stat-bar { height: 100%; border-radius: 4px; transition: width 0s; width: 0%; }
+  .modal-stat-bar { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
   .modal-stat-val { font-size: 12px; font-weight: 600; color: var(--text); width: 28px; text-align: right; flex-shrink: 0; }
   .modal-votes-total { font-size: 11px; color: var(--text3); text-align: center; margin-bottom: 1.25rem; }
 
@@ -1846,23 +1844,11 @@ function openModal(carId) {
     const pct = (avg / 5 * 100).toFixed(0);
     statsHtml += `<div class="modal-stat-row">
       <span class="modal-stat-label">${STAT_LABELS[s]}</span>
-      <div class="modal-stat-bar-wrap"><div class="modal-stat-bar ${STAT_CLASSES[s]}" style="width:0%" data-pct="${pct}"></div></div>
+      <div class="modal-stat-bar-wrap"><div class="modal-stat-bar ${STAT_CLASSES[s]}" style="width:${pct}%"></div></div>
       <span class="modal-stat-val">${avg > 0 ? avg.toFixed(1) : '—'}</span>
     </div>`;
   });
   document.getElementById('modal-stats').innerHTML = statsHtml;
-
-  // バーグラフアニメーション（順番に伸びる）
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      document.querySelectorAll('#modal-stats .modal-stat-bar').forEach((bar, i) => {
-        setTimeout(() => {
-          bar.style.transition = 'width 0.6s cubic-bezier(0.4,0,0.2,1)';
-          bar.style.width = bar.dataset.pct + '%';
-        }, i * 80);
-      });
-    });
-  });
 
   const totalVotes = getTotalVotes(carId);
   document.getElementById('modal-votes-total').textContent = totalVotes > 0 ? `${totalVotes}票の平均評価` : 'まだ投票がありません';
@@ -1994,13 +1980,13 @@ function drawRadar(carId) {
     const rr = r * (v / 5);
     return `${cx + rr * Math.cos(angles[i])},${cy + rr * Math.sin(angles[i])}`;
   }).join(' ');
-  html += `<polygon points="${dataPts}" fill="rgba(245,166,35,0.2)" stroke="#f5a623" stroke-width="2" style="transform-origin:${cx}px ${cy}px;transform:scale(0);opacity:0;transition:transform 0.6s cubic-bezier(0.34,1.56,0.64,1),opacity 0.4s ease" id="radar-data-polygon"/>`;
+  html += `<polygon points="${dataPts}" fill="rgba(245,166,35,0.2)" stroke="#f5a623" stroke-width="2"/>`;
   // dots
   vals.forEach((v, i) => {
     const rr = r * (v / 5);
     const x = cx + rr * Math.cos(angles[i]);
     const y = cy + rr * Math.sin(angles[i]);
-    if (v > 0) html += `<circle cx="${x}" cy="${y}" r="4" fill="#f5a623" stroke="#0a0a0f" stroke-width="1.5" style="opacity:0;transition:opacity 0.3s ease ${0.4 + i*0.05}s" class="radar-dot"/>`;
+    if (v > 0) html += `<circle cx="${x}" cy="${y}" r="4" fill="#f5a623" stroke="#0a0a0f" stroke-width="1.5"/>`;
   });
   // labels
   const LABEL_OFFSET = 18;
@@ -2012,20 +1998,6 @@ function drawRadar(carId) {
     html += `<text x="${lx}" y="${ly + 4}" text-anchor="${anchor}" font-size="10" fill="rgba(240,240,240,0.6)" font-family="sans-serif">${STAT_LABELS[s]}</text>`;
   });
   svg.innerHTML = html;
-
-  // 六角形チャートアニメーション
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const polygon = svg.getElementById('radar-data-polygon') || svg.querySelector('#radar-data-polygon');
-      if (polygon) {
-        polygon.style.transform = 'scale(1)';
-        polygon.style.opacity = '1';
-      }
-      svg.querySelectorAll('.radar-dot').forEach(dot => {
-        dot.style.opacity = '1';
-      });
-    });
-  });
 }
 
 function closeModal() {
