@@ -572,8 +572,27 @@
   .comment-count { font-size: 11px; color: var(--text3); }
   .comment-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
   .comment-card {
+    display: flex; align-items: flex-start; gap: 8px;
     background: var(--dark3); border-radius: 8px;
     padding: 0.75rem; border: 0.5px solid var(--border);
+  }
+  .comment-checkbox {
+    width: 18px; height: 18px; flex-shrink: 0;
+    margin-top: 2px; accent-color: var(--gold); cursor: pointer;
+  }
+  .comment-card-body { flex: 1; min-width: 0; }
+  .comment-selected-bar {
+    display: none; align-items: center; gap: 8px;
+    margin-bottom: 8px; padding: 6px 10px;
+    background: rgba(245,166,35,0.1); border-radius: 6px;
+    border: 0.5px solid rgba(245,166,35,0.3);
+  }
+  .comment-selected-bar.visible { display: flex; }
+  .comment-selected-count { font-size: 11px; color: var(--gold); flex: 1; }
+  .comment-selected-delete-btn {
+    font-size: 11px; padding: 4px 10px; border-radius: 4px;
+    border: 0.5px solid rgba(231,76,60,0.4); background: transparent;
+    color: #e74c3c; cursor: pointer;
   }
   .comment-meta {
     display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap;
@@ -1695,19 +1714,28 @@ async function renderCommentSection(carId) {
   if (comments.length === 0) {
     commentsHtml = '<p class="comment-empty">まだコメントがありません</p>';
   } else {
-    commentsHtml = '<div class="comment-list">' + comments.map(c => {
-      const date = new Date(c.created_at).toLocaleDateString('ja-JP');
-      const canDelete = isAdmin || (user && user.id === c.user_id);
-      return `<div class="comment-card">
-        <div class="comment-meta">
-          <span class="comment-player">${escHtml(c.player_name)}</span>
-          <span class="comment-class">${escHtml(c.player_class)}</span>
-          <span class="comment-date">${date}</span>
-        </div>
-        <p class="comment-text">${escHtml(c.content)}</p>
-        ${canDelete ? `<button class="comment-delete-btn" onclick="deleteComment('${c.id}','${carId}')">🗑 削除</button>` : ''}
-      </div>`;
-    }).join('') + '</div>';
+    commentsHtml = `
+      ${isAdmin ? `<div class="comment-selected-bar" id="comment-selected-bar-${carId}">
+        <span class="comment-selected-count" id="comment-selected-count-${carId}">0件選択中</span>
+        <button class="comment-selected-delete-btn" onclick="deleteSelectedComments('${carId}')">🗑 選択削除</button>
+      </div>` : ''}
+      <div class="comment-list">` +
+      comments.map(c => {
+        const date = new Date(c.created_at).toLocaleDateString('ja-JP');
+        const canDelete = isAdmin || (user && user.id === c.user_id);
+        return `<div class="comment-card">
+          ${isAdmin ? `<input type="checkbox" class="comment-checkbox" data-id="${c.id}" onchange="updateSelectedBar('${carId}')">` : ''}
+          <div class="comment-card-body">
+            <div class="comment-meta">
+              <span class="comment-player">${escHtml(c.player_name)}</span>
+              <span class="comment-class">${escHtml(c.player_class)}</span>
+              <span class="comment-date">${date}</span>
+            </div>
+            <p class="comment-text">${escHtml(c.content)}</p>
+            ${canDelete ? `<button class="comment-delete-btn" onclick="deleteComment('${c.id}','${carId}')">🗑 削除</button>` : ''}
+          </div>
+        </div>`;
+      }).join('') + '</div>';
   }
 
   let formHtml = '';
