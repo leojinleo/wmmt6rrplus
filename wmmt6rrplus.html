@@ -2142,15 +2142,46 @@ function renderCard(car) {
   </div>`;
 }
 
+// 日本語検索変換テーブル
+const JA_SEARCH_MAP = {
+  'シルビア':'silvia', 'スカイライン':'skyline', 'フェアレディ':'fairlady',
+  'フェアレディz':'fairlady z', 'ジーティーアール':'gt-r', 'ジーてぃーあーる':'gt-r',
+  'ステージア':'stagea', 'ローレル':'laurel', 'レオパード':'leopard',
+  'グロリア':'gloria', 'フーガ':'fuga', '180sx':'180sx',
+  'スープラ':'supra', 'セリカ':'celica', 'チェイサー':'chaser',
+  'マークツー':'mark ii', 'マーク2':'mark ii', 'クラウン':'crown',
+  'ソアラ':'soarer', 'アリスト':'aristo', 'セルシオ':'celsior',
+  'ハチロク':'86', 'トレノ':'trueno', 'スプリンター':'sprinter',
+  'エムアール':'mr2', 'ハイエース':'hiace', 'ランエボ':'lancer',
+  'ランサー':'lancer', 'ギャラン':'galant', 'ジーティーオー':'gto',
+  'スターion':'starion', 'スターイオン':'starion', 'パジェロ':'pajero',
+  'ロードスター':'roadster', 'アテンザ':'atenza', 'アールエックス':'rx-',
+  'コスモ':'cosmo', 'サバンナ':'savanna', 'エスシックスティ':'s660',
+  'エスニセン':'s2000', 'エヌエスエックス':'nsx', 'インプレッサ':'impreza',
+  'レガシィ':'legacy', 'レヴォーグ':'levorg', 'ブリッツ':'brz',
+  'ダブリューアールエックス':'wrx', 'アルシオーネ':'alcyone',
+  'ビーエムダブリュー':'bmw', 'ポルシェ':'porsche', 'ランボルギーニ':'lamborghini',
+  'カウンタック':'countach', 'ディアブロ':'diablo', 'アヴェンタドール':'aventador',
+  'ミウラ':'miura', 'コルベット':'corvette', 'カマロ':'camaro',
+  'バイパー':'viper', 'チャージャー':'charger', 'メルセデス':'mercedes',
+  'アウディ':'audi', 'ミニ':'mini', 'ゼットフォー':'z4',
+};
+
+function searchNormalize(str) {
+  let s = str.toLowerCase();
+  for (const [ja, en] of Object.entries(JA_SEARCH_MAP)) {
+    s = s.replace(ja, en);
+  }
+  return s;
+}
+
 function getFilteredSortedCars() {
   let list = currentFilter === 'all' ? [...CARS] : CARS.filter(c => c.maker === currentFilter);
-  // 検索フィルター（日英両対応）
   if (currentSearchQuery) {
-    const q = currentSearchQuery.toLowerCase();
+    const q = searchNormalize(currentSearchQuery);
     list = list.filter(c =>
-      c.name.toLowerCase().includes(q) ||
-      c.maker.toLowerCase().includes(q) ||
-      (c.nameJa && c.nameJa.includes(q))
+      searchNormalize(c.name).includes(q) ||
+      searchNormalize(c.maker).includes(q)
     );
   }
   if (currentSort === 'default') return list;
