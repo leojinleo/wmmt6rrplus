@@ -2283,29 +2283,19 @@ function renderAll() {
     return;
   }
 
-  if (currentSort !== 'default' || currentFilter !== 'all') {
-    // メーカー絞り込み時はヘッダーを表示
-    const makerHeader = currentFilter !== 'all' ? `
+  if (currentFilter !== 'all') {
+    // 特定メーカー絞り込み時はメーカーヘッダーを表示
+    container.innerHTML = `
       <div class="maker-section">
         <div class="maker-header">
           <span class="maker-name">${currentFilter}</span>
           <span class="maker-count">${list.length}台</span>
         </div>
-      </div>` : '';
-    container.innerHTML = makerHeader + `<div class="car-grid">${list.map(renderCard).join('')}</div>`;
-  } else {
-    // grouped by maker
-    const makers = getMakers(list);
-    container.innerHTML = makers.map(maker => {
-      const cars = list.filter(c => c.maker === maker);
-      return `<div class="maker-section" data-maker="${maker}">
-        <div class="maker-header">
-          <span class="maker-name">${maker}</span>
-          <span class="maker-count">${cars.length}台</span>
-        </div>
-        <div class="car-grid">${cars.map(renderCard).join('')}</div>
+        <div class="car-grid">${list.map(renderCard).join('')}</div>
       </div>`;
-    }).join('');
+  } else {
+    // すべて選択時はメーカーヘッダーなしでフラットに表示
+    container.innerHTML = `<div class="car-grid">${list.map(renderCard).join('')}</div>`;
   }
 }
 
