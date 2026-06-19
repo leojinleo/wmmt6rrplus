@@ -1271,6 +1271,8 @@ async function loadImages() {
     const rows = await sbGet('images');
     rows.forEach(r => { carImages[r.car_id] = r.data; });
   } catch(e) { console.warn('loadImages error:', e); }
+  // 画像読み込み完了後にモーダルが開いていれば再描画
+  if (currentModalCarId) renderModalImg(currentModalCarId);
 }
 
 function initRating() {
@@ -1374,6 +1376,10 @@ function renderModalImg(carId) {
         <span>${isAdmin ? '画像をアップロードしてください' : '画像未登録'}</span>
       </div>
       ${adminBtns}`;
+    // 画像が未読み込みの場合は1秒後にリトライ
+    if (Object.keys(carImages).length === 0) {
+      setTimeout(() => { if (currentModalCarId === carId) renderModalImg(carId); }, 1000);
+    }
   }
 }
 
@@ -1861,6 +1867,7 @@ function onRankChange() {
 function getPlayerClass() {
   const rank = document.getElementById('rank-select')?.value || '';
   const num = rank === 'SSSSSS' ? '' : (document.getElementById('rank-num')?.value || '');
+  if (rank !== 'SSSSSS' && !num) return null; // 数字未入力はnull
   return rank + num;
 }
 
@@ -1879,7 +1886,10 @@ async function editComment(commentId, carId) {
   const playerName = document.getElementById('comment-player-name')?.value.trim();
   const playerClass = getPlayerClass();
   const content = document.getElementById('comment-content')?.value.trim();
-  if (!playerName || !playerClass || !content) { alert('全ての項目を入力してください'); return; }
+  if (!playerName || !playerClass || !content) {
+    if (!playerClass) { showToast('クラスの数字を入力してください', 'error'); return; }
+    showToast('全ての項目を入力してください', 'error'); return;
+  }
   try {
     const session = (await supabaseClient.auth.getSession()).data.session;
     const token = session?.access_token;
@@ -1909,7 +1919,10 @@ async function submitComment(carId) {
   const playerName = document.getElementById('comment-player-name').value.trim();
   const playerClass = getPlayerClass();
   const content = document.getElementById('comment-content').value.trim();
-  if (!playerName || !playerClass || !content) { alert('全項目を入力してください'); return; }
+  if (!playerName || !playerClass || !content) {
+    if (!playerClass) { showToast('クラスの数字を入力してください', 'error'); return; }
+    showToast('全ての項目を入力してください', 'error'); return;
+  }
 
   const btn = document.getElementById('comment-submit-btn');
   btn.disabled = true; btn.textContent = '送信中...';
