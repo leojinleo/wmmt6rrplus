@@ -373,6 +373,15 @@
   .modal-close:hover { background: rgba(255,255,255,0.15); }
   .modal-close:hover { background: rgba(255,255,255,0.1); }
   .modal-body { padding: 0.75rem; }
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    z-index: 9999; opacity: 0; transition: opacity 0.3s ease;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.success { background: rgba(46,204,113,0.95); color: #fff; }
+  .toast.error { background: rgba(231,76,60,0.95); color: #fff; }
+  .toast.show { opacity: 1; }
   .modal-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
 
   /* CAR IMAGE */
@@ -840,6 +849,7 @@
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
 <div class="modal-close" id="modal-close-btn" onclick="closeModal()">×</div>
 <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
   <div class="modal" id="modal">
@@ -1721,6 +1731,13 @@ async function loadComments(carId) {
   } catch(e) { return []; }
 }
 
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast ${type} show`;
+  setTimeout(() => { toast.classList.remove('show'); }, 2500);
+}
+
 async function editComment(commentId, carId) {
   const playerName = document.getElementById('comment-player-name')?.value.trim();
   const playerClass = document.getElementById('comment-player-class')?.value.trim();
@@ -1742,12 +1759,13 @@ async function editComment(commentId, carId) {
       mode: 'cors', credentials: 'omit'
     });
     if (res.ok) {
+      showToast('✅ 編集完了しました！');
       renderCommentSection(carId);
     } else {
       const err = await res.text();
-      alert('編集に失敗しました: ' + err);
+      showToast('❌ 編集に失敗しました', 'error');
     }
-  } catch(e) { alert('編集エラー: ' + e.message); }
+  } catch(e) { showToast('❌ エラーが発生しました', 'error'); }
 }
 
 async function submitComment(carId) {
