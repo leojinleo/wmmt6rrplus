@@ -1882,7 +1882,12 @@ function getRankClass(playerClass) {
 function toggleEditForm(id) {
   const form = document.getElementById(id);
   if (!form) return;
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  // 戻るボタンの表示切替
+  const carId = id.replace('edit-form-', '');
+  const closeBtn = document.getElementById(`edit-close-btn-${carId}`);
+  if (closeBtn) closeBtn.style.display = isOpen ? 'none' : 'inline-block';
 }
 
 async function editComment(commentId, carId) {
