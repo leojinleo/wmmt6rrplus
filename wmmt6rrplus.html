@@ -676,16 +676,15 @@
   }
   .rank-SSSSSS { 
     background: rgba(40,20,10,0.6);
-    color: #c4813e; 
     border-color: rgba(200,120,40,0.6);
-    animation: shimmer-dark 1.5s ease-in-out infinite;
+    animation: burn-white 2s ease-in-out infinite;
   }
-  @keyframes shimmer-dark {
-    0%   { color:#8b4510; text-shadow: 0 0 4px #8b4510, 0 0 8px #8b4510; }
-    25%  { color:#e8922a; text-shadow: 0 0 8px #e8922a, 0 0 16px #e8922a, 0 0 32px #c47020, 0 0 48px #a05010; }
-    50%  { color:#ffe0a0; text-shadow: 0 0 10px #ffe0a0, 0 0 20px #ffb84d, 0 0 40px #e8922a, 0 0 60px #c47020; }
-    75%  { color:#e8922a; text-shadow: 0 0 8px #e8922a, 0 0 16px #e8922a, 0 0 32px #c47020, 0 0 48px #a05010; }
-    100% { color:#8b4510; text-shadow: 0 0 4px #8b4510, 0 0 8px #8b4510; }
+  @keyframes burn-white {
+    0%   { color:#3d1a00; text-shadow: none; }
+    30%  { color:#c47a00; text-shadow: 0 0 6px #c47a00, 0 0 12px #8b4510; }
+    60%  { color:#ff9900; text-shadow: 0 0 10px #ff9900, 0 0 20px #ff6600, 0 0 40px #c47a00; }
+    85%  { color:#fff0c0; text-shadow: 0 0 12px #ffffff, 0 0 24px #ffe066, 0 0 48px #ff9900, 0 0 72px #ff6600; }
+    100% { color:#3d1a00; text-shadow: none; }
   }
 
   /* ランクスロット選択UI */
