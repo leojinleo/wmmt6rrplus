@@ -1738,6 +1738,12 @@ function showToast(msg, type = 'success') {
   setTimeout(() => { toast.classList.remove('show'); }, 2500);
 }
 
+function toggleEditForm(id) {
+  const form = document.getElementById(id);
+  if (!form) return;
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
 async function editComment(commentId, carId) {
   const playerName = document.getElementById('comment-player-name')?.value.trim();
   const playerClass = document.getElementById('comment-player-class')?.value.trim();
@@ -1940,14 +1946,17 @@ async function renderCommentSection(carId) {
     // この車種に自分のコメントがあるか確認
     const myComment = comments.find(c => c.user_id === user.id);
     if (myComment) {
-      // 編集モード
+      // 編集モード（折りたたみ式）
       formHtml = `
         <button class="google-logout-btn" onclick="logout()">ログアウト (${user.email})</button>
-        <div class="comment-form">
-          <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20" value="${escHtml(myComment.player_name)}">
-          <input id="comment-player-class" type="text" placeholder="現在のクラス（例：SS6）" maxlength="20" value="${escHtml(myComment.player_class)}">
-          <textarea id="comment-content" placeholder="コメントを入力..." maxlength="200">${escHtml(myComment.content)}</textarea>
-          <button class="comment-submit-btn" id="comment-submit-btn" onclick="editComment('${myComment.id}','${carId}')">✏️ コメントを編集</button>
+        <button class="comment-submit-btn" onclick="toggleEditForm('edit-form-${carId}')" style="margin-bottom:8px;">✏️ コメントを編集する</button>
+        <div id="edit-form-${carId}" style="display:none;">
+          <div class="comment-form">
+            <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20" value="${escHtml(myComment.player_name)}">
+            <input id="comment-player-class" type="text" placeholder="現在のクラス（例：SS6）" maxlength="20" value="${escHtml(myComment.player_class)}">
+            <textarea id="comment-content" placeholder="コメントを入力..." maxlength="200">${escHtml(myComment.content)}</textarea>
+            <button class="comment-submit-btn" id="comment-submit-btn" onclick="editComment('${myComment.id}','${carId}')">✅ 編集を保存</button>
+          </div>
         </div>`;
     } else {
       // 新規投稿モード
