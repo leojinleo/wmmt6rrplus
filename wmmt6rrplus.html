@@ -1729,14 +1729,25 @@ async function editComment(commentId, carId) {
   try {
     const session = (await supabaseClient.auth.getSession()).data.session;
     const token = session?.access_token;
+    if (!token) { alert('ログインが必要です'); return; }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`, {
       method: 'PATCH',
-      headers: { ...SB_HEADERS, 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
+      headers: {
+        'apikey': SB_HEADERS['apikey'],
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
       body: JSON.stringify({ player_name: playerName, player_class: playerClass, content }),
       mode: 'cors', credentials: 'omit'
     });
-    if (res.ok) { renderCommentSection(carId); }
-  } catch(e) { alert('編集に失敗しました'); }
+    if (res.ok) {
+      renderCommentSection(carId);
+    } else {
+      const err = await res.text();
+      alert('編集に失敗しました: ' + err);
+    }
+  } catch(e) { alert('編集エラー: ' + e.message); }
 }
 
 async function submitComment(carId) {
