@@ -651,13 +651,24 @@
   .rank-SS   { background:rgba(220,50,50,0.15);   color:#e74c3c; border-color:rgba(220,50,50,0.3); }
   .rank-SSS  { background:rgba(150,50,220,0.15);  color:#9b59b6; border-color:rgba(150,50,220,0.3); }
   .rank-SSSS { background:rgba(245,166,35,0.2);   color:#f5a623; border-color:rgba(245,166,35,0.4); }
-  .rank-SSSSS { background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff,#c77dff);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-    background-clip:text; border-color:rgba(255,255,255,0.3);
-    background-color:rgba(255,255,255,0.05); padding: 2px 7px; }
+  .rank-SSSSS { 
+    border-color:rgba(255,255,255,0.3);
+    background-color:rgba(255,255,255,0.05);
+    padding: 2px 7px;
+    animation: rainbow 1s linear infinite;
+  }
+  @keyframes rainbow {
+    0%   { color: #ff6b6b; text-shadow: 0 0 8px #ff6b6b; }
+    16%  { color: #ffd93d; text-shadow: 0 0 8px #ffd93d; }
+    33%  { color: #6bcb77; text-shadow: 0 0 8px #6bcb77; }
+    50%  { color: #4d96ff; text-shadow: 0 0 8px #4d96ff; }
+    66%  { color: #c77dff; text-shadow: 0 0 8px #c77dff; }
+    83%  { color: #ff6b9d; text-shadow: 0 0 8px #ff6b9d; }
+    100% { color: #ff6b6b; text-shadow: 0 0 8px #ff6b6b; }
+  }
   .rank-SSSSSS { 
     background:rgba(40,20,10,0.6); 
-    color:#8b5a2b; 
+    color:#c4813e; 
     border-color:rgba(100,60,20,0.5);
     animation: shimmer-dark 2s ease-in-out infinite;
     text-shadow: 0 0 8px rgba(180,100,30,0.8), 0 0 16px rgba(180,100,30,0.4);
