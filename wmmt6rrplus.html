@@ -642,8 +642,42 @@
   .comment-player { font-size: 12px; font-weight: 600; color: var(--gold); }
   .comment-class {
     font-size: 10px; padding: 2px 7px; border-radius: 4px;
-    background: rgba(245,166,35,0.1); color: var(--gold);
-    border: 0.5px solid rgba(245,166,35,0.3);
+    border: 0.5px solid rgba(245,166,35,0.3); font-weight: 600;
+  }
+  .rank-C    { background:rgba(100,200,255,0.15); color:#64c8ff; border-color:rgba(100,200,255,0.3); }
+  .rank-B    { background:rgba(50,200,100,0.15);  color:#32c864; border-color:rgba(50,200,100,0.3); }
+  .rank-A    { background:rgba(255,220,50,0.15);  color:#ffdc32; border-color:rgba(255,220,50,0.3); }
+  .rank-S    { background:rgba(255,140,0,0.15);   color:#ff8c00; border-color:rgba(255,140,0,0.3); }
+  .rank-SS   { background:rgba(220,50,50,0.15);   color:#e74c3c; border-color:rgba(220,50,50,0.3); }
+  .rank-SSS  { background:rgba(150,50,220,0.15);  color:#9b59b6; border-color:rgba(150,50,220,0.3); }
+  .rank-SSSS { background:rgba(245,166,35,0.2);   color:#f5a623; border-color:rgba(245,166,35,0.4); }
+  .rank-SSSSS { background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff,#c77dff);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; border-color:rgba(255,255,255,0.3);
+    background-color:rgba(255,255,255,0.05); padding: 2px 7px; }
+  .rank-SSSSSS { background:rgba(40,20,10,0.6); color:#8b5a2b; border-color:rgba(100,60,20,0.5); }
+
+  /* ランクスロット選択UI */
+  .rank-selector { display:flex; align-items:center; gap:8px; }
+  .rank-slot-wrap { display:flex; flex-direction:column; gap:4px; flex:1; }
+  .rank-slot-label { font-size:10px; color:var(--text3); }
+  .rank-slot-row { display:flex; align-items:center; gap:6px; }
+  .rank-select {
+    flex:1; background:var(--dark); border:0.5px solid var(--border);
+    border-radius:6px; color:var(--text); font-size:15px; padding:8px 10px;
+    outline:none; font-family:inherit; appearance:none; -webkit-appearance:none;
+    cursor:pointer;
+  }
+  .rank-select:focus { border-color:var(--gold); }
+  .rank-num-input {
+    width:60px; background:var(--dark); border:0.5px solid var(--border);
+    border-radius:6px; color:var(--text); font-size:15px; padding:8px 8px;
+    outline:none; font-family:inherit; text-align:center;
+  }
+  .rank-num-input:focus { border-color:var(--gold); }
+  .rank-preview {
+    font-size:12px; padding:3px 10px; border-radius:4px; font-weight:600;
+    min-width:60px; text-align:center;
   }
   .comment-date { font-size: 10px; color: var(--text3); margin-left: auto; }
   .comment-text { font-size: 12px; color: var(--text2); line-height: 1.6; }
@@ -1738,6 +1772,66 @@ function showToast(msg, type = 'success') {
   setTimeout(() => { toast.classList.remove('show'); }, 2500);
 }
 
+const RANKS = ['C','B','A','S','SS','SSS','SSSS','SSSSS','SSSSSS'];
+const RANK_COLORS = {
+  'C':'rank-C','B':'rank-B','A':'rank-A','S':'rank-S',
+  'SS':'rank-SS','SSS':'rank-SSS','SSSS':'rank-SSSS',
+  'SSSSS':'rank-SSSSS','SSSSSS':'rank-SSSSSS'
+};
+
+function buildRankSelector(currentClass = '') {
+  // 現在のクラスを分解（例: SS6 → rank=SS, num=6）
+  let initRank = 'S', initNum = '';
+  if (currentClass) {
+    const match = currentClass.match(/^(C|B|A|SSSSSS|SSSSS|SSSS|SSS|SS|S)(\d*)$/);
+    if (match) { initRank = match[1]; initNum = match[2] || ''; }
+  }
+  const rankOptions = RANKS.map(r =>
+    `<option value="${r}" ${r === initRank ? 'selected' : ''}>${r}</option>`
+  ).join('');
+  const numDisabled = initRank === 'SSSSSS' ? 'disabled style="opacity:0.4"' : '';
+  return `
+    <div class="rank-slot-wrap">
+      <span class="rank-slot-label">現在のクラス</span>
+      <div class="rank-slot-row">
+        <select class="rank-select" id="rank-select" onchange="onRankChange()">
+          ${rankOptions}
+        </select>
+        <input class="rank-num-input" id="rank-num" type="number" min="1" max="99" placeholder="番" value="${initNum}" ${numDisabled} oninput="onRankChange()">
+        <span class="rank-preview comment-class ${RANK_COLORS[initRank]}" id="rank-preview">${initRank}${initNum}</span>
+      </div>
+    </div>`;
+}
+
+function onRankChange() {
+  const rank = document.getElementById('rank-select')?.value;
+  const numInput = document.getElementById('rank-num');
+  const preview = document.getElementById('rank-preview');
+  if (!rank || !numInput || !preview) return;
+  if (rank === 'SSSSSS') {
+    numInput.value = '';
+    numInput.disabled = true;
+    numInput.style.opacity = '0.4';
+  } else {
+    numInput.disabled = false;
+    numInput.style.opacity = '1';
+  }
+  const num = numInput.value;
+  preview.textContent = rank + num;
+  preview.className = `rank-preview comment-class ${RANK_COLORS[rank]}`;
+}
+
+function getPlayerClass() {
+  const rank = document.getElementById('rank-select')?.value || '';
+  const num = rank === 'SSSSSS' ? '' : (document.getElementById('rank-num')?.value || '');
+  return rank + num;
+}
+
+function getRankClass(playerClass) {
+  const match = playerClass?.match(/^(C|B|A|SSSSSS|SSSSS|SSSS|SSS|SS|S)/);
+  return match ? (RANK_COLORS[match[1]] || '') : '';
+}
+
 function toggleEditForm(id) {
   const form = document.getElementById(id);
   if (!form) return;
@@ -1746,7 +1840,7 @@ function toggleEditForm(id) {
 
 async function editComment(commentId, carId) {
   const playerName = document.getElementById('comment-player-name')?.value.trim();
-  const playerClass = document.getElementById('comment-player-class')?.value.trim();
+  const playerClass = getPlayerClass();
   const content = document.getElementById('comment-content')?.value.trim();
   if (!playerName || !playerClass || !content) { alert('全ての項目を入力してください'); return; }
   try {
@@ -1776,7 +1870,7 @@ async function editComment(commentId, carId) {
 
 async function submitComment(carId) {
   const playerName = document.getElementById('comment-player-name').value.trim();
-  const playerClass = document.getElementById('comment-player-class').value.trim();
+  const playerClass = getPlayerClass();
   const content = document.getElementById('comment-content').value.trim();
   if (!playerName || !playerClass || !content) { alert('全項目を入力してください'); return; }
 
@@ -1915,7 +2009,7 @@ async function renderCommentSection(carId) {
           <div class="comment-card-body">
             <div class="comment-meta">
               <span class="comment-player">${escHtml(c.player_name)}</span>
-              <span class="comment-class">${escHtml(c.player_class)}</span>
+              <span class="comment-class ${getRankClass(c.player_class)}">${escHtml(c.player_class)}</span>
               <span class="comment-date">${date}</span>
             </div>
             <p class="comment-text">${escHtml(c.content)}</p>
@@ -1953,7 +2047,7 @@ async function renderCommentSection(carId) {
         <div id="edit-form-${carId}" style="display:none;">
           <div class="comment-form">
             <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20" value="${escHtml(myComment.player_name)}">
-            <input id="comment-player-class" type="text" placeholder="現在のクラス（例：SS6）" maxlength="20" value="${escHtml(myComment.player_class)}">
+            ${buildRankSelector(myComment.player_class)}
             <textarea id="comment-content" placeholder="コメントを入力..." maxlength="200">${escHtml(myComment.content)}</textarea>
             <button class="comment-submit-btn" id="comment-submit-btn" onclick="editComment('${myComment.id}','${carId}')">✅ 編集を保存</button>
           </div>
@@ -1964,7 +2058,7 @@ async function renderCommentSection(carId) {
         <button class="google-logout-btn" onclick="logout()">ログアウト (${user.email})</button>
         <div class="comment-form">
           <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20">
-          <input id="comment-player-class" type="text" placeholder="現在のクラス（例：SS6）" maxlength="20">
+          ${buildRankSelector()}
           <textarea id="comment-content" placeholder="コメントを入力..." maxlength="200"></textarea>
           <button class="comment-submit-btn" id="comment-submit-btn" onclick="submitComment('${carId}')">コメントを投稿</button>
         </div>`;
