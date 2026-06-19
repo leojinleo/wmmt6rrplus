@@ -14,9 +14,9 @@
     --dark2: #111118;
     --dark3: #1a1a24;
     --border: rgba(255,255,255,0.08);
-    --text: #f0f0f0;
-    --text2: rgba(240,240,240,0.55);
-    --text3: rgba(240,240,240,0.3);
+    --text: #ffffff;
+    --text2: rgba(240,240,240,0.85);
+    --text3: rgba(240,240,240,0.55);
     --green: #2ecc71;
     --blue: #3b9edd;
     --purple: #8b6fe8;
@@ -677,7 +677,7 @@
   .rank-SSSSSS { 
     background: rgba(40,20,10,0.6);
     border-color: rgba(200,120,40,0.6);
-    animation: burn-white 2s ease-in-out infinite;
+    animation: burn-white 2s ease-in-out infinite, tremble 0.1s ease-in-out infinite;
   }
   @keyframes burn-white {
     0%   { color:#3d1a00; text-shadow: none; }
@@ -685,6 +685,13 @@
     60%  { color:#ff9900; text-shadow: 0 0 10px #ff9900, 0 0 20px #ff6600, 0 0 40px #c47a00; }
     85%  { color:#fff0c0; text-shadow: 0 0 12px #ffffff, 0 0 24px #ffe066, 0 0 48px #ff9900, 0 0 72px #ff6600; }
     100% { color:#3d1a00; text-shadow: none; }
+  }
+  @keyframes tremble {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(0.5px, -0.5px); }
+    50%  { transform: translate(-0.5px, 0.5px); }
+    75%  { transform: translate(0.5px, 0.5px); }
+    100% { transform: translate(0, 0); }
   }
 
   /* ランクスロット選択UI */
