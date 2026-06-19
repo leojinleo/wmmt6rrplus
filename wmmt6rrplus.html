@@ -1870,7 +1870,7 @@ function onRankChange() {
 function getPlayerClass() {
   const rank = document.getElementById('rank-select')?.value || '';
   const num = rank === 'SSSSSS' ? '' : (document.getElementById('rank-num')?.value || '');
-  if (rank !== 'SSSSSS' && !num) return null; // 数字未入力はnull
+  if (rank !== 'SSSSSS' && !num) return null;
   return rank + num;
 }
 
@@ -1939,8 +1939,11 @@ async function submitComment(carId) {
       body: JSON.stringify({ car_id: carId, user_id: currentUser.id, player_name: playerName, player_class: playerClass, content }),
       mode: 'cors', credentials: 'omit'
     });
-    if (res.ok) { renderCommentSection(carId); }
-    else { alert('送信に失敗しました'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
+    if (res.ok) {
+      localStorage.setItem('wmmt_player_name', playerName);
+      renderCommentSection(carId);
+    }
+    else { showToast('送信に失敗しました', 'error'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
   } catch(e) { alert('送信に失敗しました'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
 }
 
@@ -2110,7 +2113,7 @@ async function renderCommentSection(carId) {
       formHtml = `
         <button class="google-logout-btn" onclick="logout()">ログアウト (${user.email})</button>
         <div class="comment-form">
-          <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20">
+          <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20" value="${localStorage.getItem('wmmt_player_name') || ''}">
           ${buildRankSelector()}
           <textarea id="comment-content" placeholder="コメントを入力..." maxlength="200"></textarea>
           <button class="comment-submit-btn" id="comment-submit-btn" onclick="submitComment('${carId}')">コメントを投稿</button>
