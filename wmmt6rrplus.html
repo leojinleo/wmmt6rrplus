@@ -2098,7 +2098,7 @@ async function renderCommentSection(carId) {
     if (myComment) {
       // 編集モード（折りたたみ式）
       formHtml = `
-        <button class="google-logout-btn" onclick="logout()">ログアウト (${user.email})</button>
+        <button class="google-logout-btn" onclick="logout()">ここをタップしてログアウト</button>
         <button class="comment-submit-btn" onclick="toggleEditForm('edit-form-${carId}')" style="margin-bottom:8px;">✏️ コメントを編集する</button>
         <div id="edit-form-${carId}" style="display:none;">
           <div class="comment-form">
@@ -2111,7 +2111,7 @@ async function renderCommentSection(carId) {
     } else {
       // 新規投稿モード
       formHtml = `
-        <button class="google-logout-btn" onclick="logout()">ログアウト (${user.email})</button>
+        <button class="google-logout-btn" onclick="logout()">ここをタップしてログアウト</button>
         <div class="comment-form">
           <input id="comment-player-name" type="text" placeholder="プレイヤー名" maxlength="20" value="${localStorage.getItem('wmmt_player_name') || ''}">
           ${buildRankSelector()}
