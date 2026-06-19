@@ -4,14 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>WANGAN MIDNIGHT MAXIMUM TUNE 6RR+ | 全車種評価データベース by れおじん</title>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-RKNLYC7PQF"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-RKNLYC7PQF');
-</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -971,6 +963,9 @@
     れおじんのYouTubeチャンネル
   </a>
   <div class="header-right">
+    <a id="analytics-btn" href="https://analytics.google.com/analytics/web/#/p472458211/reports/intelligenthome" target="_blank" style="display:none;align-items:center;gap:4px;font-size:10px;color:#4285f4;text-decoration:none;border:0.5px solid rgba(66,133,244,0.4);background:rgba(66,133,244,0.08);padding:4px 8px;border-radius:999px;margin-right:6px;white-space:nowrap;">
+      📊 アナリティクス
+    </a>
     <button class="admin-header-btn" id="admin-header-btn" onclick="toggleAdminLogin()">管理者</button>
   </div>
 </header>
@@ -1465,6 +1460,7 @@ function toggleAdminLogin() {
     isAdmin = false;
     document.getElementById('admin-header-btn').classList.remove('active');
     document.getElementById('admin-header-btn').textContent = '管理者';
+    document.getElementById('analytics-btn').style.display = 'none';
     if (currentModalCarId) renderModalDesc(currentModalCarId);
     if (currentModalCarId) renderModalImg(currentModalCarId);
   } else {
@@ -1491,6 +1487,7 @@ function submitPw() {
     closePwDialog();
     document.getElementById('admin-header-btn').classList.add('active');
     document.getElementById('admin-header-btn').textContent = '管理者モード中';
+    document.getElementById('analytics-btn').style.display = 'flex';
     if (currentModalCarId) renderModalDesc(currentModalCarId);
     if (currentModalCarId) renderModalImg(currentModalCarId);
   } else {
@@ -2650,7 +2647,8 @@ function sortCards(stat, btn) {
 
 // Init
 (async () => {
-  await Promise.all([loadRatings(), loadDescriptions(), loadImages()]);
+  await Promise.all([loadRatings(), loadDescriptions()]);
+  loadImages(); // 画像は非同期で後から読み込み（起動を遅らせない）
   renderAll();
   const overlay = document.getElementById('loading');
   overlay.classList.add('hidden');
