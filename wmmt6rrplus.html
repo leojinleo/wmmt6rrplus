@@ -655,7 +655,7 @@
     border-color:rgba(255,255,255,0.3);
     background-color:rgba(255,255,255,0.05);
     padding: 2px 7px;
-    animation: rainbow 1s linear infinite;
+    animation: rainbow 2s linear infinite;
   }
   @keyframes rainbow {
     0%   { color: #ff6b6b; text-shadow: 0 0 8px #ff6b6b; }
@@ -667,15 +667,17 @@
     100% { color: #ff6b6b; text-shadow: 0 0 8px #ff6b6b; }
   }
   .rank-SSSSSS { 
-    background:rgba(40,20,10,0.6); 
-    color:#c4813e; 
-    border-color:rgba(100,60,20,0.5);
-    animation: shimmer-dark 2s ease-in-out infinite;
-    text-shadow: 0 0 8px rgba(180,100,30,0.8), 0 0 16px rgba(180,100,30,0.4);
+    background: rgba(40,20,10,0.6);
+    color: #c4813e; 
+    border-color: rgba(200,120,40,0.6);
+    animation: shimmer-dark 1.5s ease-in-out infinite;
   }
   @keyframes shimmer-dark {
-    0%, 100% { text-shadow: 0 0 6px rgba(180,100,30,0.6), 0 0 12px rgba(180,100,30,0.3); }
-    50% { text-shadow: 0 0 12px rgba(220,140,50,1), 0 0 24px rgba(180,100,30,0.6), 0 0 36px rgba(140,70,10,0.3); }
+    0%   { color:#8b4510; text-shadow: 0 0 4px #8b4510, 0 0 8px #8b4510; }
+    25%  { color:#e8922a; text-shadow: 0 0 8px #e8922a, 0 0 16px #e8922a, 0 0 32px #c47020, 0 0 48px #a05010; }
+    50%  { color:#ffe0a0; text-shadow: 0 0 10px #ffe0a0, 0 0 20px #ffb84d, 0 0 40px #e8922a, 0 0 60px #c47020; }
+    75%  { color:#e8922a; text-shadow: 0 0 8px #e8922a, 0 0 16px #e8922a, 0 0 32px #c47020, 0 0 48px #a05010; }
+    100% { color:#8b4510; text-shadow: 0 0 4px #8b4510, 0 0 8px #8b4510; }
   }
 
   /* ランクスロット選択UI */
@@ -1818,7 +1820,7 @@ function buildRankSelector(currentClass = '') {
         <select class="rank-select" id="rank-select" onchange="onRankChange()">
           ${rankOptions}
         </select>
-        <input class="rank-num-input" id="rank-num" type="number" min="1" max="99" placeholder="番" value="${initNum}" ${numDisabled} oninput="onRankChange()">
+        <input class="rank-num-input" id="rank-num" type="number" min="1" max="99" placeholder="数字" value="${initNum}" ${numDisabled} oninput="onRankChange()">
         <span class="rank-preview comment-class ${RANK_COLORS[initRank]}" id="rank-preview">${initRank}${initNum}</span>
       </div>
     </div>`;
