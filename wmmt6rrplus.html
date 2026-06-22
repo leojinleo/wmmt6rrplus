@@ -2016,7 +2016,7 @@ function renderRanking() {
       avg: getAvg(car.id, currentRankingStat),
       votes: getTotalVotes(car.id)
     }))
-    .filter(item => item.votes >= 1 && item.avg > 0)
+    .filter(item => item.votes >= 5 && item.avg > 0)
     .sort((a, b) => b.avg - a.avg || b.votes - a.votes)
     .slice(0, 3);
 
