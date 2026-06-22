@@ -125,7 +125,7 @@
   .hero-eye { font-size: 10px; letter-spacing: 0.18em; color: var(--gold); text-transform: uppercase; margin-bottom: 0.6rem; }
   .hero-title { font-size: clamp(22px, 5vw, 36px); font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.4rem; }
   .hero-title span { color: var(--gold); }
-  .hero-desc { font-size: 13px; color: rgba(240,240,240,0.85); max-width: 480px; margin: 0 auto 1.2rem; }
+  .hero-desc { font-size: 13px; color: rgba(240,240,240,0.85); max-width: 480px; margin: 0 auto 1rem; }
   .hero-pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .pill {
     font-size: 11px; padding: 3px 12px; border-radius: 999px;
@@ -133,33 +133,27 @@
     background: rgba(245,166,35,0.06);
   }
 
-  /* VISITOR COUNTER */
+  /* VISITOR COUNTER (inline) */
   .visitor-counter {
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    background: rgba(245,166,35,0.06);
-    border: 0.5px solid rgba(245,166,35,0.25);
-    border-radius: 14px;
-    padding: 1rem 2rem;
-    margin: 0 auto;
-    max-width: 320px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; flex-wrap: wrap;
   }
-  .visitor-total { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .visitor-label { font-size: 11px; color: var(--text3); letter-spacing: 0.1em; }
+  .visitor-total { display: flex; align-items: center; gap: 7px; }
+  .visitor-label { font-size: 11px; color: var(--text3); }
   .visitor-digits {
-    font-size: 32px; font-weight: 700; color: var(--gold);
-    letter-spacing: 0.08em; font-variant-numeric: tabular-nums;
+    font-size: 15px; font-weight: 700; color: var(--gold);
     font-family: 'Orbitron', monospace;
-    min-width: 160px; text-align: center;
-    text-shadow: 0 0 20px rgba(245,166,35,0.4);
+    text-shadow: 0 0 10px rgba(245,166,35,0.4);
+    letter-spacing: 0.05em;
   }
   .visitor-now {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: var(--text2);
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text3);
   }
   .visitor-dot {
-    width: 8px; height: 8px; border-radius: 50%;
+    width: 7px; height: 7px; border-radius: 50%;
     background: var(--green);
-    box-shadow: 0 0 6px var(--green);
+    box-shadow: 0 0 5px var(--green);
     animation: pulse-dot 2s ease-in-out infinite;
     flex-shrink: 0;
   }
@@ -167,7 +161,6 @@
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.5; transform: scale(0.8); }
   }
-
   /* MAIN */
   .main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 
@@ -1066,12 +1059,11 @@
 <div class="hero">
   <p class="hero-eye">WANGAN MIDNIGHT MAXIMUM TUNE 6RR+</p>
   <h1 class="hero-title"><span>全車種評価</span>データベース<br>by れおじん</h1>
-  <p class="hero-desc">湾岸プレイヤーの投票で作られる<br>リアルタイム車種評価サイト<br>ここで見ればきっと何かの役に立つ！<br>ご協力の方よろしくお願い致します！</p>
-  <!-- 来場者カウンター -->
+  <p class="hero-desc">湾岸プレイヤーの投票で作るリアルタイム車種評価サイト</p>
   <div class="visitor-counter" id="visitor-counter">
     <div class="visitor-total">
       <span class="visitor-label">累計来場者数</span>
-      <div class="visitor-digits" id="visitor-digits">——————</div>
+      <div class="visitor-digits" id="visitor-digits">——</div>
     </div>
     <div class="visitor-now" id="visitor-now">
       <span class="visitor-dot"></span>
