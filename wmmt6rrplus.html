@@ -2088,7 +2088,7 @@ function renderRanking() {
       bayesAvg: getBayesAvg(car.id, currentRankingStat),
       votes: getTotalVotes(car.id)
     }))
-    .filter(item => item.votes >= 5 && item.avg > 0)
+    .filter(item => item.votes >= 10 && item.avg > 0)
     .sort((a, b) => b.bayesAvg - a.bayesAvg || b.votes - a.votes)
     .slice(0, 3);
 
