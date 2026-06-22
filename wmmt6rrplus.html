@@ -2361,7 +2361,6 @@ function updateSelectedBar(carId) {
 async function deleteSelectedComments(carId) {
   const checkboxes = document.querySelectorAll(`.comment-checkbox:checked`);
   if (checkboxes.length === 0) return;
-  if (!confirm(`${checkboxes.length}件のコメントを削除しますか？`)) return;
   const ids = Array.from(checkboxes).map(cb => cb.dataset.id);
   try {
     for (const id of ids) {
@@ -2369,18 +2368,19 @@ async function deleteSelectedComments(carId) {
         method: 'DELETE', headers: SB_HEADERS, mode: 'cors', credentials: 'omit'
       });
     }
+    showToast(`${ids.length}件のコメントを削除しました`);
     renderCommentSection(carId);
-  } catch(e) { alert('削除に失敗しました'); }
+  } catch(e) { showToast('削除に失敗しました'); }
 }
 
 async function deleteAllComments(carId) {
-  if (!confirm(`この車種のコメントを全て削除しますか？`)) return;
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/comments?car_id=eq.${carId}`, {
       method: 'DELETE', headers: SB_HEADERS, mode: 'cors', credentials: 'omit'
     });
+    showToast('コメントを全て削除しました');
     renderCommentSection(carId);
-  } catch(e) { alert('削除に失敗しました'); }
+  } catch(e) { showToast('削除に失敗しました'); }
 }
 
 async function renderCommentSection(carId) {
