@@ -1652,17 +1652,12 @@ async function submitVote(carId) {
   try {
     for (const s of STATS) {
       const v = pendingVotes[carId][s];
-      const current = ratings[carId][s];
-      const newSum = current.sum + v;
-      const newCount = current.count + 1;
-      await fetch(`${SUPABASE_URL}/rest/v1/ratings?car_id=eq.${carId}&stat=eq.${s}`, {
-        method: 'PATCH',
-        headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ sum: newSum, count: newCount }),
+      await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_rating`, {
+        method: 'POST',
+        headers: { ...SB_HEADERS },
+        body: JSON.stringify({ p_car_id: carId, p_stat: s, p_value: v }),
         mode: 'cors', credentials: 'omit'
       });
-      ratings[carId][s].sum = newSum;
-      ratings[carId][s].count = newCount;
     }
   } catch(e) { console.warn(e); }
 
@@ -2639,22 +2634,16 @@ async function submitModalVote() {
 
   if (!ratings[carId]) ratings[carId] = initRating();
 
-  // 各statをSupabaseでインクリメント（競合しない方式）
+  // 各statをRPCでアトミックにインクリメント
   try {
     for (const s of STATS) {
       const v = modalPending[carId][s];
-      const current = ratings[carId][s];
-      const newSum = current.sum + v;
-      const newCount = current.count + 1;
-      await fetch(`${SUPABASE_URL}/rest/v1/ratings?car_id=eq.${carId}&stat=eq.${s}`, {
-        method: 'PATCH',
-        headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ sum: newSum, count: newCount }),
+      await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_rating`, {
+        method: 'POST',
+        headers: { ...SB_HEADERS },
+        body: JSON.stringify({ p_car_id: carId, p_stat: s, p_value: v }),
         mode: 'cors', credentials: 'omit'
       });
-      // ローカルも更新
-      ratings[carId][s].sum = newSum;
-      ratings[carId][s].count = newCount;
     }
   } catch(e) { console.warn(e); }
 
