@@ -13,6 +13,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
 <title>WANGAN MIDNIGHT MAXIMUM TUNE 6RR+ | 全車種評価データベース by れおじん</title>
+
+<!-- OGP -->
+<meta property="og:title" content="湾岸マキシ 6RR+ 全車種評価データベース by れおじん">
+<meta property="og:description" content="湾岸プレイヤーの投票で作るリアルタイム車種評価サイト。全114車種のブースト・最高速・加速・接触性能・擦り抜け・コーナリングを評価。">
+<meta property="og:image" content="https://raw.githubusercontent.com/leojinleo/wmmt6rrplus/refs/heads/main/IMG_8983.jpeg">
+<meta property="og:url" content="https://leojinleo.github.io/wmmt6rrplus/wmmt6rrplus.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="湾岸マキシ 6RR+ 全車種評価データベース by れおじん">
+<meta name="twitter:description" content="湾岸プレイヤーの投票で作るリアルタイム車種評価サイト。全114車種を評価。">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/leojinleo/wmmt6rrplus/refs/heads/main/IMG_8983.jpeg">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1637,13 +1648,29 @@ async function submitVote(carId) {
   if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
 
   if (!ratings[carId]) ratings[carId] = initRating();
-  const upsertData = STATS.map(s => {
-    const v = pendingVotes[carId][s];
-    ratings[carId][s].sum += v;
-    ratings[carId][s].count += 1;
-    return { car_id: carId, stat: s, sum: ratings[carId][s].sum, count: ratings[carId][s].count };
-  });
-  try { await sbUpsert('ratings', upsertData); } catch(e) { console.warn(e); }
+
+  try {
+    for (const s of STATS) {
+      const v = pendingVotes[carId][s];
+      const current = ratings[carId][s];
+      const newSum = current.sum + v;
+      const newCount = current.count + 1;
+      await fetch(`${SUPABASE_URL}/rest/v1/ratings?car_id=eq.${carId}&stat=eq.${s}`, {
+        method: 'PATCH',
+        headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ sum: newSum, count: newCount }),
+        mode: 'cors', credentials: 'omit'
+      });
+      ratings[carId][s].sum = newSum;
+      ratings[carId][s].count = newCount;
+    }
+  } catch(e) { console.warn(e); }
+
+  // 投票後に最新値を再取得
+  try {
+    const rows = await sbGet('ratings', `?car_id=eq.${carId}`);
+    rows.forEach(r => { ratings[carId][r.stat] = { sum: r.sum, count: r.count }; });
+  } catch(e) {}
 
   votedCars[carId] = true;
   try { localStorage.setItem(VOTED_KEY, JSON.stringify(votedCars)); } catch(e) {}
@@ -1738,7 +1765,7 @@ async function handleImgUpload(event) {
 }
 
 async function deleteCarImg(carId) {
-  if (!confirm('この車種の画像を削除しますか？')) return;
+  if (!window.confirm('この車種の画像を削除しますか？')) return;
   delete carImages[carId];
   try { await sbDelete('images', `?car_id=eq.${carId}`); } catch(e) {}
   renderModalImg(carId);
@@ -1861,7 +1888,7 @@ function toggleCompare(carId, btn) {
     btn.textContent = '＋ 比較車種に追加';
     btn.classList.remove('selected');
   } else {
-    if (compareList.length >= 2) { alert('比較できるのは2台までです'); return; }
+    if (compareList.length >= 2) { showToast('比較できるのは2台までです'); return; }
     compareList.push(carId);
     btn.textContent = '✓ 比較に追加済み';
     btn.classList.add('selected');
@@ -2016,7 +2043,7 @@ function renderRanking() {
       avg: getAvg(car.id, currentRankingStat),
       votes: getTotalVotes(car.id)
     }))
-    .filter(item => item.votes >= 1 && item.avg > 0)
+    .filter(item => item.votes >= 5 && item.avg > 0)
     .sort((a, b) => b.avg - a.avg || b.votes - a.votes)
     .slice(0, 3);
 
@@ -2199,7 +2226,7 @@ async function editComment(commentId, carId) {
   try {
     const session = (await supabaseClient.auth.getSession()).data.session;
     const token = session?.access_token;
-    if (!token) { alert('ログインが必要です'); return; }
+    if (!token) { showToast('ログインが必要です'); return; }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/comments?id=eq.${commentId}`, {
       method: 'PATCH',
       headers: {
@@ -2247,7 +2274,7 @@ async function submitComment(carId) {
       renderCommentSection(carId);
     }
     else { showToast('送信に失敗しました', 'error'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
-  } catch(e) { alert('送信に失敗しました'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
+  } catch(e) { showToast('送信に失敗しました'); btn.disabled = false; btn.textContent = 'コメントを投稿'; }
 }
 
 // いいね機能（Supabase連携・端末IDで重複防止）
@@ -2337,7 +2364,7 @@ async function deleteComment(commentId, carId) {
       method: 'DELETE', headers, mode: 'cors', credentials: 'omit'
     });
     renderCommentSection(carId);
-  } catch(e) { alert('削除に失敗しました'); }
+  } catch(e) { showToast('削除に失敗しました'); }
 }
 
 function updateSelectedBar(carId) {
@@ -2486,15 +2513,6 @@ async function renderCommentSection(carId) {
     </div>`;
 }
 
-function resetVote(carId) {
-  if (!confirm('投票を取り消して再投票しますか？\n※取り消しても過去の投票データは残ります')) return;
-  delete votedCars[carId];
-  try { localStorage.setItem(VOTED_KEY, JSON.stringify(votedCars)); } catch(e) {}
-  renderModalVote(carId);
-  const card = document.getElementById(`card-${carId}`);
-  if (card) { const car = CARS.find(c => c.id === carId); card.outerHTML = renderCard(car); }
-}
-
 // ===== MODAL =====
 let currentModalCarId = null;
 const modalPending = {};
@@ -2574,7 +2592,6 @@ function renderModalVote(carId) {
     section.innerHTML = `<div class="modal-voted-msg">
       <span>✓ 投票済み</span>
       <small>あなたの評価が反映されています</small>
-      <button onclick="resetVote('${carId}')" style="margin-top:8px;font-size:11px;padding:5px 14px;border-radius:6px;border:0.5px solid rgba(231,76,60,0.4);background:transparent;color:#e74c3c;cursor:pointer;">🔄 投票を取り消して再投票</button>
     </div>`;
     return;
   }
