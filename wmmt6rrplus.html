@@ -1686,8 +1686,15 @@ function clickStar(carId, stat, val) {
 async function submitVote(carId) {
   if (!pendingVotes[carId] || Object.keys(pendingVotes[carId]).length < 6) return;
   const btn = document.getElementById(`vote-btn-${carId}`);
-  if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
 
+  // 24時間クールタイムチェック
+  const onCooldown = await checkVoteCooldown(carId);
+  if (onCooldown) {
+    showToast('この車種への投票は24時間に1回までです');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
   if (!ratings[carId]) ratings[carId] = initRating();
 
   try {
@@ -1710,6 +1717,7 @@ async function submitVote(carId) {
 
   votedCars[carId] = true;
   try { localStorage.setItem(VOTED_KEY, JSON.stringify(votedCars)); } catch(e) {}
+  await recordVoteLog(carId);
   delete pendingVotes[carId];
 
   const card = document.getElementById(`card-${carId}`);
@@ -2327,6 +2335,28 @@ function getDeviceId() {
   return id;
 }
 
+// 24時間クールタイムチェック
+async function checkVoteCooldown(carId) {
+  const deviceId = getDeviceId();
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const rows = await sbGet('vote_logs', `?device_id=eq.${deviceId}&car_id=eq.${carId}&voted_at=gte.${since}`);
+    return rows && rows.length > 0; // trueなら24時間以内に投票済み
+  } catch(e) { return false; }
+}
+
+async function recordVoteLog(carId) {
+  const deviceId = getDeviceId();
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/vote_logs`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ device_id: deviceId, car_id: carId, voted_at: new Date().toISOString() }),
+      mode: 'cors', credentials: 'omit'
+    });
+  } catch(e) { console.warn(e); }
+}
+
 // likesキャッシュ { comment_id: { count, liked } }
 let likesCache = {};
 
@@ -2672,8 +2702,16 @@ async function submitModalVote() {
   const carId = currentModalCarId;
   if (!modalPending[carId] || Object.keys(modalPending[carId]).length < 6) return;
   const btn = document.getElementById('modal-vote-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
 
+  // 24時間クールタイムチェック
+  const onCooldown = await checkVoteCooldown(carId);
+  if (onCooldown) {
+    showToast('この車種への投票は24時間に1回までです');
+    if (btn) { btn.disabled = false; btn.textContent = '投票する（全6項目必須）'; }
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
   if (!ratings[carId]) ratings[carId] = initRating();
 
   // 各statをRPCでアトミックにインクリメント
@@ -2691,6 +2729,7 @@ async function submitModalVote() {
 
   votedCars[carId] = true;
   try { localStorage.setItem(VOTED_KEY, JSON.stringify(votedCars)); } catch(e) {}
+  await recordVoteLog(carId);
   delete modalPending[carId];
 
   // Supabaseから最新値を再取得して正確な値を表示
