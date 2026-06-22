@@ -1304,7 +1304,8 @@ async function sbGet(table, query = '') {
     method: 'GET',
     headers: SB_HEADERS,
     mode: 'cors',
-    credentials: 'omit'
+    credentials: 'omit',
+    cache: 'no-store'
   });
   return res.ok ? await res.json() : [];
 }
