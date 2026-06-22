@@ -1103,7 +1103,14 @@
   <div class="ranking-section" id="ranking-section">
     <div class="ranking-header">
       <span class="ranking-title">🏆 ランキング</span>
-      <span class="ranking-sub">投票データによる平均評価TOP3</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ranking-sub">投票データによる平均評価TOP3</span>
+        <button onclick="toggleRankingInfo()" id="ranking-info-btn" style="width:18px;height:18px;border-radius:50%;border:0.5px solid var(--border);background:rgba(255,255,255,0.06);color:var(--text3);font-size:11px;cursor:pointer;flex-shrink:0;line-height:1;display:flex;align-items:center;justify-content:center;">?</button>
+      </div>
+    </div>
+    <div id="ranking-info-panel" style="display:none;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.6;">
+      ランキングについて<br>
+      票数が少ない車種が不当に上位にならないよう「ベイズ平均」という方式を採用しています。票数が増えるほど正確な評価が反映されます。
     </div>
     <div class="ranking-tabs">
       <button class="ranking-tab active" onclick="switchRankingTab('boost', this)">ブースト</button>
@@ -1534,6 +1541,16 @@ function renderRecentCommentsAll() {
     <button onclick="toggleRecentComments()" style="width:100%;margin-top:10px;padding:8px;font-size:12px;border-radius:8px;border:0.5px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;">閉じる ✕</button>`;
 }
 
+function toggleRankingInfo() {
+  const panel = document.getElementById('ranking-info-panel');
+  const btn = document.getElementById('ranking-info-btn');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  btn.style.color = isOpen ? 'var(--text3)' : 'var(--gold)';
+  btn.style.borderColor = isOpen ? 'var(--border)' : 'var(--gold)';
+}
+
 function toggleRecentComments() {
   const panel = document.getElementById('recent-comments-all');
   const btn = document.getElementById('recent-comments-toggle');
@@ -1592,6 +1609,30 @@ function getAvg(carId, stat) {
   const r = ratings[carId]?.[stat];
   if (!r || r.count === 0) return 0;
   return Math.round((r.sum / r.count) * 10) / 10;
+}
+
+// ベイズ平均（ランキング用）
+// 全体平均に引き寄せることで少票数の車種が不当に上位に来るのを防ぐ
+const BAYES_MIN_VOTES = 10; // 最低票数の基準
+
+function getBayesAvg(carId, stat) {
+  const r = ratings[carId]?.[stat];
+  if (!r || r.count === 0) return 0;
+
+  // 全車種の平均を計算
+  let totalSum = 0, totalCount = 0;
+  CARS.forEach(c => {
+    const cr = ratings[c.id]?.[stat];
+    if (cr && cr.count > 0) {
+      totalSum += cr.sum;
+      totalCount += cr.count;
+    }
+  });
+  const globalAvg = totalCount > 0 ? totalSum / totalCount : 3.0;
+
+  // ベイズ平均 = (全体平均 × 最低票数 + 車種の合計値) ÷ (最低票数 + 車種の票数)
+  const bayesScore = (globalAvg * BAYES_MIN_VOTES + r.sum) / (BAYES_MIN_VOTES + r.count);
+  return Math.round(bayesScore * 10) / 10;
 }
 
 function getTotalVotes(carId) {
@@ -2036,10 +2077,11 @@ function renderRanking() {
     .map(car => ({
       car,
       avg: getAvg(car.id, currentRankingStat),
+      bayesAvg: getBayesAvg(car.id, currentRankingStat),
       votes: getTotalVotes(car.id)
     }))
     .filter(item => item.votes >= 5 && item.avg > 0)
-    .sort((a, b) => b.avg - a.avg || b.votes - a.votes)
+    .sort((a, b) => b.bayesAvg - a.bayesAvg || b.votes - a.votes)
     .slice(0, 3);
 
   if (ranked.length === 0) {
