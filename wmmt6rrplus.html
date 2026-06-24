@@ -2248,18 +2248,34 @@ function goRanking(idx) {
   updateRankingSlider();
 }
 
-// タッチスワイプ対応
+// タッチスワイプ対応（縦スクロールと競合しない）
 (function() {
-  let startX = 0;
+  let startX = 0, startY = 0, isHoriz = null;
+  const getWrap = e => e.target.closest('.ranking-slider-wrap');
+
   document.addEventListener('touchstart', e => {
-    const el = e.target.closest('.ranking-slider-wrap');
-    if (el) startX = e.touches[0].clientX;
+    if (!getWrap(e)) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isHoriz = null;
   }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!getWrap(e)) return;
+    if (isHoriz === null) {
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (dx + dy < 5) return;
+      isHoriz = dx > dy;
+    }
+    if (isHoriz) e.preventDefault(); // 水平スワイプなら縦スクロールをブロック
+  }, { passive: false });
+
   document.addEventListener('touchend', e => {
-    const el = e.target.closest('.ranking-slider-wrap');
-    if (!el) return;
+    if (!getWrap(e) || !isHoriz) return;
     const diff = startX - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 40) slideRanking(diff > 0 ? 1 : -1);
+    isHoriz = null;
   }, { passive: true });
 })();
 
