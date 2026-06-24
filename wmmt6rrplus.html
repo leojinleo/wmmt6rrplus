@@ -1228,6 +1228,12 @@ const STATS = ['boost','contact','topspeed','accel','squeeze','cornering'];
 const STAT_LABELS = { boost:'ブースト', contact:'接触性能', topspeed:'最高速', accel:'加速', squeeze:'擦り抜け', cornering:'コーナリング' };
 const STAT_CLASSES = { boost:'bar-boost', contact:'bar-contact', topspeed:'bar-topspeed', accel:'bar-accel', squeeze:'bar-squeeze', cornering:'bar-cornering' };
 
+// ★1つ=20点、100点満点換算
+function toScore(avg) {
+  if (!avg || avg <= 0) return '—';
+  return Math.round(avg * 20) + '点';
+}
+
 const CARS = [
   // NISSAN (20台)
   { id:'n01', maker:'日産', name:'180SX TYPE III (RPS13)', drive:'FR', isNew:false },
@@ -2055,11 +2061,11 @@ function openCompareModal() {
       <span class="compare-stat-label">${STAT_LABELS[s]}</span>
       <div class="compare-stat-bars">
         <div class="compare-stat-bar-row">
-          <span class="compare-stat-name" style="color:var(--gold)">${avgA > 0 ? avgA.toFixed(1) : '—'}</span>
+          <span class="compare-stat-name" style="color:var(--gold)">${avgA > 0 ? Math.round(avgA*20)+'点' : '—'}</span>
           <div class="compare-stat-bar-wrap"><div class="compare-stat-bar bar-a" style="width:${pctA}%"></div></div>
         </div>
         <div class="compare-stat-bar-row">
-          <span class="compare-stat-name" style="color:var(--blue)">${avgB > 0 ? avgB.toFixed(1) : '—'}</span>
+          <span class="compare-stat-name" style="color:var(--blue)">${avgB > 0 ? Math.round(avgB*20)+'点' : '—'}</span>
           <div class="compare-stat-bar-wrap"><div class="compare-stat-bar bar-b" style="width:${pctB}%"></div></div>
         </div>
       </div>
@@ -2181,7 +2187,7 @@ function renderRanking() {
         <div style="flex:1;background:var(--dark);border-radius:3px;height:4px;overflow:hidden">
           <div class="${STAT_CLASSES[s]}" style="width:${pct}%;height:100%;border-radius:3px"></div>
         </div>
-        <span style="font-size:10px;color:var(--text2);width:24px;text-align:right;font-weight:600">${avg > 0 ? avg.toFixed(1) : '—'}</span>
+        <span style="font-size:10px;color:var(--text2);width:24px;text-align:right;font-weight:600">${toScore(avg)}</span>
       </div>`;
     }).join('');
 
@@ -2195,7 +2201,7 @@ function renderRanking() {
             <p class="ranking-votes">${item.votes}票</p>
           </div>
           <div style="text-align:right;flex-shrink:0">
-            <p style="font-size:26px;font-weight:700;color:${scoreColor};font-family:'Orbitron',monospace;line-height:1">${item.totalAvg.toFixed(2)}</p>
+            <p style="font-size:26px;font-weight:700;color:${scoreColor};font-family:'Orbitron',monospace;line-height:1">${Math.round(item.totalAvg * 20)}<span style="font-size:12px;font-weight:400;color:var(--text3)">点</span></p>
             <p style="font-size:9px;color:var(--text3);margin-top:2px">総合スコア</p>
           </div>
         </div>
@@ -2776,7 +2782,7 @@ function openModal(carId) {
     statsHtml += `<div class="modal-stat-row">
       <span class="modal-stat-label">${STAT_LABELS[s]}</span>
       <div class="modal-stat-bar-wrap"><div class="modal-stat-bar ${STAT_CLASSES[s]}" style="width:0%" data-pct="${pct}"></div></div>
-      <span class="modal-stat-val">${avg > 0 ? avg.toFixed(1) : '—'}</span>
+      <span class="modal-stat-val">${toScore(avg)}</span>
     </div>`;
   });
   document.getElementById('modal-stats').innerHTML = statsHtml;
@@ -2933,7 +2939,7 @@ async function submitModalVote() {
     statsHtml += `<div class="modal-stat-row">
       <span class="modal-stat-label">${STAT_LABELS[s]}</span>
       <div class="modal-stat-bar-wrap"><div class="modal-stat-bar ${STAT_CLASSES[s]}" style="width:${pct}%"></div></div>
-      <span class="modal-stat-val">${avg > 0 ? avg.toFixed(1) : '—'}</span>
+      <span class="modal-stat-val">${toScore(avg)}</span>
     </div>`;
   });
   document.getElementById('modal-stats').innerHTML = statsHtml;
@@ -3031,7 +3037,7 @@ function renderCard(car) {
       <div class="stat-row">
         <span class="stat-label">${STAT_LABELS[s]}</span>
         <div class="stat-bar-wrap"><div class="stat-bar ${STAT_CLASSES[s]}" style="width:${pct}%"></div></div>
-        <span class="stat-val">${avg > 0 ? avg.toFixed(1) : '—'}</span>
+        <span class="stat-val">${toScore(avg)}</span>
       </div>`;
   });
 
