@@ -3185,6 +3185,58 @@ function getMakers(list) {
   return makers;
 }
 
+// ===== 部門別ナンバーワン =====
+const CATEGORY_ICONS = {
+  boost: '⚡', contact: '🔵', topspeed: '🔴',
+  accel: '🟢', squeeze: '🟣', cornering: '🟠'
+};
+
+function renderCategoryTop() {
+  const container = document.getElementById('category-top-list');
+  if (!container) return;
+
+  const rows = STATS.map(stat => {
+    const best = CARS
+      .map(car => ({ car, avg: getAvg(car.id, stat), votes: getTotalVotes(car.id) }))
+      .filter(item => item.votes >= 5 && item.avg > 0)
+      .sort((a, b) => b.avg - a.avg || b.votes - a.votes)[0];
+
+    return { stat, best };
+  });
+
+  container.innerHTML = rows.map(({ stat, best }) => {
+    if (!best) return `
+      <div style="display:flex;align-items:center;gap:10px;background:var(--dark3);border-radius:8px;padding:8px 12px;border:0.5px solid var(--border)">
+        <span style="font-size:16px;flex-shrink:0">${CATEGORY_ICONS[stat]}</span>
+        <span style="font-size:11px;color:var(--text2);width:60px;flex-shrink:0">${STAT_LABELS[stat]}</span>
+        <span style="font-size:11px;color:var(--text3)">データ不足</span>
+      </div>`;
+
+    const pct = (best.avg / 5 * 100).toFixed(0);
+    return `
+      <div style="display:flex;align-items:center;gap:10px;background:var(--dark3);border-radius:8px;padding:9px 12px;border:0.5px solid var(--border);cursor:pointer;transition:border-color 0.15s"
+        onclick="openModal('${best.car.id}')"
+        onmouseover="this.style.borderColor='rgba(245,166,35,0.4)'"
+        onmouseout="this.style.borderColor='var(--border)'">
+        <span style="font-size:18px;flex-shrink:0">${CATEGORY_ICONS[stat]}</span>
+        <span style="font-size:11px;color:var(--text2);width:60px;flex-shrink:0;font-weight:600">${STAT_LABELS[stat]}</span>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:10px;color:var(--text3);margin-bottom:1px">${best.car.maker}</p>
+          <p style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${best.car.name}</p>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:3px">
+            <div style="flex:1;background:var(--dark);border-radius:2px;height:3px;overflow:hidden">
+              <div class="${STAT_CLASSES[stat]}" style="width:${pct}%;height:100%;border-radius:2px"></div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <p style="font-size:22px;font-weight:700;color:var(--gold);font-family:'Orbitron',monospace;line-height:1">${Math.round(best.avg * 20)}<span style="font-size:11px;font-weight:400;color:var(--text3)">点</span></p>
+          <p style="font-size:9px;color:var(--text3)">${best.votes}票</p>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 function renderAll() {
   const list = getFilteredSortedCars();
   const container = document.getElementById('car-list');
