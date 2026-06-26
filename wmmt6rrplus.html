@@ -157,21 +157,7 @@
     text-shadow: 0 0 10px rgba(245,166,35,0.4);
     letter-spacing: 0.05em;
   }
-  .visitor-now {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 12px; color: var(--text3);
-  }
-  .visitor-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 5px var(--green);
-    animation: pulse-dot 2s ease-in-out infinite;
-    flex-shrink: 0;
-  }
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
+
   /* MAIN */
   .main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 
@@ -1132,10 +1118,7 @@
       <span class="visitor-label">累計来場者数</span>
       <div class="visitor-digits" id="visitor-digits">——</div>
     </div>
-    <div class="visitor-now" id="visitor-now">
-      <span class="visitor-dot"></span>
-      <span id="visitor-now-text">— 人が閲覧中</span>
-    </div>
+
   </div>
 </div>
 
@@ -1469,21 +1452,11 @@ async function recordVisit() {
   } catch(e) { console.warn('recordVisit error:', e); }
 }
 
-async function updateActiveUser() {
-  const sessionId = getSessionId();
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/active_users`, {
-      method: 'POST',
-      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify({ session_id: sessionId, last_seen: new Date().toISOString() }),
-      mode: 'cors', credentials: 'omit'
-    });
-  } catch(e) {}
-}
+
 
 async function loadVisitorCount() {
   const digitsEl = document.getElementById('visitor-digits');
-  const nowEl = document.getElementById('visitor-now-text');
+
   try {
     // 累計来場者数
     const res = await fetch(`${SUPABASE_URL}/rest/v1/visits?select=count`, {
@@ -1493,14 +1466,6 @@ async function loadVisitorCount() {
     const count = parseInt(res.headers.get('Content-Range')?.split('/')[1] || '0');
     if (digitsEl) animateCount(digitsEl, count);
 
-    // 5分以内のアクティブユーザー数
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    const activeRes = await fetch(`${SUPABASE_URL}/rest/v1/active_users?last_seen=gte.${fiveMinAgo}&select=count`, {
-      headers: { ...SB_HEADERS, 'Prefer': 'count=exact', 'Range': '0-0' },
-      mode: 'cors', credentials: 'omit'
-    });
-    const activeCount = parseInt(activeRes.headers.get('Content-Range')?.split('/')[1] || '0');
-    if (nowEl) nowEl.textContent = `現在 ${activeCount} 人が閲覧中`;
   } catch(e) {
     if (digitsEl) digitsEl.textContent = '—';
     console.warn('loadVisitorCount error:', e);
@@ -1510,19 +1475,14 @@ async function loadVisitorCount() {
 async function initVisitorCounter() {
   // 訪問記録（初回のみ）＋アクティブユーザー更新を並列実行
   const visited = sessionStorage.getItem('wmmt_visited');
-  const tasks = [updateActiveUser()];
   if (!visited) {
     sessionStorage.setItem('wmmt_visited', '1');
-    tasks.push(recordVisit());
+    await recordVisit();
   }
-  await Promise.all(tasks);
   // カウント表示（記録後に取得）
   loadVisitorCount();
   // 30秒ごとに更新
-  setInterval(async () => {
-    await updateActiveUser();
-    loadVisitorCount();
-  }, 30000);
+  setInterval(loadVisitorCount, 30000);
 }
 
 // ===== RECENT COMMENTS =====
